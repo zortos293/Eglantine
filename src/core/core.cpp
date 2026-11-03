@@ -191,7 +191,7 @@ struct System::Impl {
 
     u64 program_id;
 
-    bool Initialize(System& system) {
+    void CreateDeviceMemory() {
         try {
             device_memory.emplace();
         } catch (const std::bad_alloc&) {
@@ -200,6 +200,10 @@ struct System::Impl {
         if (device_memory && !device_memory->buffer.BackingBasePointer()) {
             device_memory.reset();
         }
+    }
+
+    bool Initialize(System& system) {
+        CreateDeviceMemory();
 
         is_multicore = Settings::values.use_multi_core.GetValue();
         memory_layout = Settings::values.memory_layout_mode.GetValue();
@@ -345,6 +349,13 @@ struct System::Impl {
 
     SystemResultStatus InitializeKernel(System& system) {
         LOG_DEBUG(Core, "initialized OK");
+
+        // ShutdownMainProcess releases it after a Switch 2 game; create it before the check below
+        // so the released slot alone does not rerun the full Initialize. A slot left empty by a
+        // failed allocation still goes through ReinitializeIfNecessary.
+        if (std::exchange(device_memory_released, false)) {
+            CreateDeviceMemory();
+        }
 
         // Setting changes may require a full system reinitialization (e.g., disabling multicore).
         ReinitializeIfNecessary(system);
@@ -567,6 +578,14 @@ struct System::Impl {
         // Reset all glue registrations
         arp_manager.ResetAll();
 
+        // The guest RAM section keeps every page the game touched until it is destroyed (up to
+        // 12 GiB), and the next Load reuses it. Switch 2 only: Switch 1 keeps its behaviour.
+        // InitializeKernel creates it again, sized for the next game.
+        if (Settings::CurrentProgramIsSwitch2() && device_memory) {
+            device_memory.reset();
+            device_memory_released = true;
+        }
+
         LOG_DEBUG(Core, "Shutdown OK");
     }
 
@@ -619,6 +638,8 @@ struct System::Impl {
     std::optional<Core::PerfStats> perf_stats;
     std::optional<Tegra::Host1x::Host1x> host1x_core;
     std::optional<Core::DeviceMemory> device_memory;
+    /// ShutdownMainProcess released device_memory; InitializeKernel creates it again.
+    bool device_memory_released{};
     std::optional<AudioCore::AudioCore> audio_core;
     std::optional<Memory::CheatEngine> cheat_engine;
     std::optional<Tools::Freezer> memory_freezer;
