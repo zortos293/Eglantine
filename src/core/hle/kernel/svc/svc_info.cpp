@@ -88,9 +88,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
         }
         case InfoType::Nx2RemoteMemorySize:
-            // Unknown real value; nothing backs it yet.
-            *result = 0;
-            LOG_WARNING(Kernel_SVC, "(STUBBED) Switch 2 InfoType 31 (remote memory size), returning 0");
+            // Unknown real value; nothing backs it yet. The Duskbloods network test crashes on a
+            // null pointer if it is 0 (playDB-CNT issue 2).
+            *result = std::getenv("EDEN_NX2_APP_POOL_PROBE") != nullptr ? u64{512} << 20 : 0;
+            LOG_WARNING(Kernel_SVC, "(STUBBED) Switch 2 InfoType 31 (remote memory size), returning {:#x}",
+                        *result);
             R_SUCCEED();
         case InfoType::Nx2RemoteMemoryUsed:
             *result = 0;

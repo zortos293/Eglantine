@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstdlib>
 #include <random>
 
 #include "common/literals.h"
@@ -136,6 +137,12 @@ std::size_t KSystemControl::Init::GetApplicationPoolSize() {
             return 9809_MiB;
         }
     }();
+
+    // EDEN_NX2_APP_POOL_PROBE=<MiB> grows the pool: The Duskbloods network test's CSMemory heap "M"
+    // asks for more than the 12 GB arrangement leaves (playDB-CNT issue 2).
+    if (const char* probe = std::getenv("EDEN_NX2_APP_POOL_PROBE"); probe != nullptr) {
+        return base_pool_size + static_cast<size_t>(std::strtoull(probe, nullptr, 10)) * 1_MiB;
+    }
 
     // Return (possibly) adjusted size.
     return base_pool_size;
