@@ -94,6 +94,10 @@ public:
         return native_source_size;
     }
 
+    [[nodiscard]] size_t CodeWords() const override {
+        return CachedSizeWords();
+    }
+
     [[nodiscard]] const std::shared_ptr<const LoweredNativeCode>& LoweredNative() const noexcept {
         return lowered_native;
     }
@@ -270,6 +274,10 @@ public:
         return cbuf_replacements.size() != 0;
     }
     bool HasNativeInstructions() const override;
+
+    [[nodiscard]] size_t CodeWords() const override {
+        return code.size();
+    }
 
     void Dump(u64 pipeline_hash, u64 shader_hash) override;
 
