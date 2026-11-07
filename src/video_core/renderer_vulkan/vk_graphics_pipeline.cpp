@@ -759,7 +759,9 @@ bool GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
         // Wait for the pipeline to be built
         scheduler.Record([this](vk::CommandBuffer) {
             const auto begin = std::chrono::steady_clock::now();
-            build->Wait(!worker_only_build);
+            // Claim the build here even for worker-only builds: the queue is FIFO, so a held
+            // draw otherwise waits behind every pipeline queued before it (title 1: 1-2 s).
+            build->Wait(true);
             hold_time_ns.fetch_add(std::chrono::duration_cast<std::chrono::nanoseconds>(
                                        std::chrono::steady_clock::now() - begin)
                                        .count(),
