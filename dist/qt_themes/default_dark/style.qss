@@ -3,20 +3,99 @@
 * SPDX-License-Identifier: GPL-2.0-or-later
 */
 QAbstractSpinBox {
-    min-height: 19px;
+    min-height: 24px;
+    padding-right: 2px;
 }
 
 QComboBox {
-  padding: 0px 4px 0px 4px;
-  min-width: 60px;
-  min-height: 19px;
+    padding: 2px 8px;
+    min-width: 72px;
+    min-height: 24px;
+}
+
+QLineEdit, QPlainTextEdit, QTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    border-radius: 6px;
+}
+
+QToolBar {
+    spacing: 4px;
+    padding: 2px;
+}
+
+QStatusBar {
+    padding-left: 2px;
+}
+
+QMenuBar {
+    padding: 2px 4px;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    margin: 0 1px;
+    border-radius: 6px;
+}
+
+QMenu {
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 22px 6px 10px;
+    border-radius: 6px;
+}
+
+QMenu::separator {
+    height: 1px;
+    margin: 6px 4px;
+    background: palette(midlight);
+}
+
+QTabWidget::pane {
+    border-radius: 8px;
+}
+
+QTabBar::tab {
+    padding: 7px 12px;
+    margin-right: 2px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+QHeaderView::section {
+    padding: 6px 8px;
+}
+
+QPushButton {
+    min-height: 24px;
+    padding: 4px 12px;
+    border-radius: 7px;
+}
+
+QToolButton {
+    padding: 3px;
+    border-radius: 6px;
+}
+
+QGroupBox {
+    margin-top: 20px;
+    padding: 10px 8px 8px 8px;
+    border-radius: 8px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 6px;
 }
 
 QPushButton#TogglableStatusBarButton {
-    color: #959595;
+    color: palette(mid);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
@@ -25,59 +104,42 @@ QPushButton#TogglableStatusBarButton:checked {
 }
 
 QPushButton#TogglableStatusBarButton:hover {
-    border: 1px solid #76797C;
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
-QPushButton#RendererStatusBarButton {
-    color: #656565;
+QPushButton#RendererStatusBarButton,
+QPushButton#RefreshButton,
+QPushButton#GPUStatusBarButton {
+    color: palette(mid);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
-QPushButton#RendererStatusBarButton:hover {
-    border: 1px solid #76797C;
+QPushButton#RendererStatusBarButton:hover,
+QPushButton#RefreshButton:hover,
+QPushButton#GPUStatusBarButton:hover {
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
 QPushButton#RendererStatusBarButton:checked {
-    color: #e85c00;
+    color: #ff8a3d;
 }
 
 QPushButton#RendererStatusBarButton:!checked {
-    color: #00ccdd;
-}
-
-QPushButton#RefreshButton {
-    color: #656565;
-    border: 1px solid transparent;
-    background-color: transparent;
-    padding: 0px 3px 0px 3px;
-    text-align: center;
-}
-
-QPushButton#RefreshButton:hover {
-    border: 1px solid #76797C;
-}
-
-QPushButton#GPUStatusBarButton {
-    color: #656565;
-    border: 1px solid transparent;
-    background-color: transparent;
-    padding: 0px 3px 0px 3px;
-    text-align: center;
-}
-
-QPushButton#GPUStatusBarButton:hover {
-    border: 1px solid #76797C;
+    color: #44c7ff;
 }
 
 QPushButton#GPUStatusBarButton:checked {
-    color: #ff8040;
+    color: #ff9d57;
 }
 
 QPushButton#GPUStatusBarButton:!checked {
-    color: #40dd40;
+    color: #58d68d;
 }
 
 QPushButton#DockingStatusBarButton {
@@ -85,19 +147,21 @@ QPushButton#DockingStatusBarButton {
     color: palette(text);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
 QPushButton#DockingStatusBarButton:hover {
-    border: 1px solid #76797C;
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
 QPushButton#buttonRefreshDevices {
-    min-width: 21px;
-    min-height: 21px;
-    max-width: 21px;
-    max-height: 21px;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
 }
 
 QWidget#bottomPerGameInput,
@@ -728,4 +792,58 @@ QGroupBox::indicator {
   margin-left: 2px;
   height: 16px;
   width: 16px;
+}
+
+QWidget#centralwidget {
+  background-color: #081722;
+}
+
+QWidget#gameListSearchField {
+  background-color: #0a1a27;
+  border-top: 1px solid #1b3445;
+}
+
+QLabel#gameListFilterLabel,
+QLabel#gameListFilterResult {
+  color: #93a8b7;
+}
+
+QListView#gameGridView,
+QListView#gameCarouselView {
+  background-color: #081722;
+  border: none;
+}
+
+QMenuBar {
+  min-height: 42px;
+  padding: 0 10px;
+  background-color: #0a1a27;
+  border-bottom: 1px solid #1b3445;
+}
+
+QMenuBar::item {
+  color: #a9becd;
+  padding: 8px 13px;
+  margin: 4px 2px;
+  border-radius: 6px;
+}
+
+QMenuBar::item:selected {
+  color: #72d1f7;
+  background-color: #102b3d;
+  border-bottom: 2px solid #32bdf0;
+}
+
+QToolBar {
+  spacing: 6px;
+  padding: 4px 8px;
+  background-color: #0a1a27;
+  border: none;
+}
+
+QStatusBar {
+  color: #93a8b7;
+  padding-left: 10px;
+  background-color: #081722;
+  border-top: 1px solid #183043;
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <map>
 #include <string>
@@ -80,6 +81,8 @@ public:
     static constexpr int FullPathRole = SortRole + 2;
     static constexpr int ProgramIdRole = SortRole + 3;
     static constexpr int FileTypeRole = SortRole + 4;
+    static constexpr int HasIconRole = SortRole + 5;
+    static constexpr int CardIconRole = SortRole + 6;
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
@@ -115,12 +118,26 @@ public:
         const u32 size = UISettings::values.game_icon_size.GetValue();
 
         QPixmap picture;
-        if (!picture.loadFromData(picture_data.data(), static_cast<u32>(picture_data.size()))) {
+        const bool has_icon =
+            picture.loadFromData(picture_data.data(), static_cast<u32>(picture_data.size()));
+        if (!has_icon) {
             picture = GetDefaultIcon(size);
+        }
+        QPixmap card_picture;
+        if (has_icon) {
+            const u32 card_target = std::max<u32>(size, u32{384});
+            if (std::max(picture.width(), picture.height()) > static_cast<int>(card_target)) {
+                card_picture = picture.scaled(card_target, card_target, Qt::KeepAspectRatio,
+                                              Qt::SmoothTransformation);
+            } else {
+                card_picture = picture;
+            }
         }
         picture = picture.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
         setData(picture, Qt::DecorationRole);
+        setData(has_icon, HasIconRole);
+        setData(card_picture, CardIconRole);
     }
 
     int type() const override {

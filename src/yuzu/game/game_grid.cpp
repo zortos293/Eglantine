@@ -13,6 +13,7 @@
 GameGrid::GameGrid(QWidget* parent) : QListView{parent} {
     m_gameCard = new GameCard(this);
     setItemDelegate(m_gameCard);
+    setObjectName(QStringLiteral("gameGridView"));
 
     setViewMode(QListView::ListMode);
     setResizeMode(QListView::Fixed);
@@ -20,17 +21,24 @@ GameGrid::GameGrid(QWidget* parent) : QListView{parent} {
     setSelectionMode(QAbstractItemView::SingleSelection);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setMouseTracking(true);
 
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     setEditTriggers(QAbstractItemView::NoEditTriggers);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
-    setSpacing(10);
+    setSpacing(12);
     setWordWrap(true);
     setTextElideMode(Qt::ElideRight);
     setFlow(QListView::LeftToRight);
     setWrapping(true);
+    setStyleSheet(QStringLiteral(
+        "QListView {"
+        "  border: none;"
+        "  outline: none;"
+        "  padding: 6px 8px 12px 8px;"
+        "}"));
 }
 
 void GameGrid::SetModel(GameListModel* model) {
@@ -56,27 +64,15 @@ void GameGrid::ApplyFilter(const QString& edit_filter_text, GameListModel* model
 
 void GameGrid::UpdateIconSize() {
     const u32 icon_size = UISettings::values.game_icon_size.GetValue();
+    const bool show_game_name = UISettings::values.show_game_name.GetValue();
+    const u32 display_icon_size = show_game_name ? std::max<u32>(icon_size, u32{128}) : icon_size;
 
     int heightMargin = 0;
     int widthMargin = 80;
 
-    if (UISettings::values.show_game_name) {
-        switch (icon_size) {
-        case 128:
-            heightMargin = 65;
-            break;
-        case 0:
-            widthMargin = 120;
-            heightMargin = 120;
-            break;
-        case 64:
-            heightMargin = 77;
-            break;
-        case 32:
-        case 256:
-            heightMargin = 81;
-            break;
-        }
+    if (show_game_name) {
+        widthMargin = 110;
+        heightMargin = 155;
     } else {
         widthMargin = 24;
         heightMargin = 24;
@@ -85,12 +81,12 @@ void GameGrid::UpdateIconSize() {
     const int view_width = viewport()->width();
 
     const double spacing = 0.01;
-    const int min_item_width = icon_size + widthMargin;
+    const int min_item_width = display_icon_size + widthMargin;
 
     int columns = std::max(1, (view_width - 16) / min_item_width);
     int stretched_width = ((view_width) - (spacing * (columns - 1))) / columns;
 
-    QSize grid_size(stretched_width, icon_size + heightMargin);
+    QSize grid_size(stretched_width, display_icon_size + heightMargin);
     if (gridSize() != grid_size) {
         setUpdatesEnabled(false);
 

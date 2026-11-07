@@ -2880,3 +2880,129 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_space:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift:disabled {
   image: url(:/overlay/osk_button_Y_dark_disabled.png);
 }
+
+QMenuBar {
+    padding: 2px 4px;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    margin: 0 1px;
+    border-radius: 6px;
+}
+
+QMenu {
+    padding: 6px;
+    border-radius: 8px;
+}
+
+QMenu::item {
+    padding: 6px 22px 6px 10px;
+    border-radius: 6px;
+}
+
+QMenu::separator {
+    height: 1px;
+    margin: 6px 4px;
+    background: palette(midlight);
+}
+
+QToolBar {
+    spacing: 4px;
+    padding: 2px;
+}
+
+QStatusBar {
+    padding-left: 2px;
+}
+
+QTabWidget::pane {
+    border-radius: 8px;
+}
+
+QTabBar::tab {
+    padding: 7px 12px;
+    margin-right: 2px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+QHeaderView::section {
+    padding: 6px 8px;
+}
+
+QPushButton {
+    min-height: 24px;
+    padding: 4px 12px;
+    border-radius: 7px;
+}
+
+QToolButton {
+    padding: 3px;
+    border-radius: 6px;
+}
+
+QLineEdit, QPlainTextEdit, QTextEdit, QSpinBox, QDoubleSpinBox, QComboBox, QAbstractSpinBox {
+    border-radius: 6px;
+    min-height: 24px;
+}
+
+QGroupBox {
+    margin-top: 18px;
+    padding: 10px 8px 8px 8px;
+    border-radius: 8px;
+}
+
+QWidget#centralwidget {
+    background-color: #081722;
+}
+
+QWidget#gameListSearchField {
+    background-color: #0a1a27;
+    border-top: 1px solid #1b3445;
+}
+
+QLabel#gameListFilterLabel,
+QLabel#gameListFilterResult {
+    color: #93a8b7;
+}
+
+QListView#gameGridView,
+QListView#gameCarouselView {
+    background-color: #081722;
+    border: none;
+}
+
+QMenuBar {
+    min-height: 42px;
+    padding: 0 10px;
+    background-color: #0a1a27;
+    border-bottom: 1px solid #1b3445;
+}
+
+QMenuBar::item {
+    color: #a9becd;
+    padding: 8px 13px;
+    margin: 4px 2px;
+    border-radius: 6px;
+}
+
+QMenuBar::item:selected {
+    color: #72d1f7;
+    background-color: #102b3d;
+    border-bottom: 2px solid #32bdf0;
+}
+
+QToolBar {
+    spacing: 6px;
+    padding: 4px 8px;
+    background-color: #0a1a27;
+    border: none;
+}
+
+QStatusBar {
+    color: #93a8b7;
+    padding-left: 10px;
+    background-color: #081722;
+    border-top: 1px solid #183043;
+}

@@ -83,6 +83,8 @@ private:
     ::Common::unordered_map<VideoCore::LoadCallbackStage, const char*> progressbar_style;
     ::Common::unordered_map<VideoCore::LoadCallbackStage, QString> stage_translations;
 
+    QString game_title;
+
     // newly generated shaders are added to the end of the file, so when loading and compiling
     // shaders, it will start quickly but end slow if new shaders were added since previous launch.
     // These variables are used to detect the change in speed so we can generate an ETA

@@ -96,9 +96,11 @@ void GameListModel::AddEntry(const QList<QStandardItem*>& entry_items, GameListD
 }
 
 void GameListModel::DonePopulating(const QStringList& watch_list) {
-    emit ShowList(!IsEmpty());
-
-    if (!m_flat) {
+    if (m_flat) {
+        invisibleRootItem()->appendRow(new GameListAddDir());
+        emit ShowList(true);
+    } else {
+        emit ShowList(!IsEmpty());
         invisibleRootItem()->appendRow(new GameListAddDir());
         invisibleRootItem()->insertRow(0, new GameListFavorites());
 

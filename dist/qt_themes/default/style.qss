@@ -1,104 +1,168 @@
 QAbstractSpinBox {
-    min-height: 19px;
+    min-height: 24px;
+    padding-right: 2px;
 }
 
 QComboBox {
-  padding: 0px 4px 0px 4px;
-  min-width: 60px;
-  min-height: 19px;
+    padding: 2px 8px;
+    min-width: 72px;
+    min-height: 24px;
+}
+
+QLineEdit, QPlainTextEdit, QTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    border-radius: 6px;
+}
+
+QToolBar {
+    spacing: 4px;
+    padding: 2px;
+}
+
+QStatusBar {
+    padding-left: 2px;
+}
+
+QMenuBar {
+    padding: 2px 4px;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    margin: 0 1px;
+    border-radius: 6px;
+}
+
+QMenu {
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 6px 22px 6px 10px;
+    border-radius: 6px;
+}
+
+QMenu::separator {
+    height: 1px;
+    margin: 6px 4px;
+    background: palette(midlight);
+}
+
+QTabWidget::pane {
+    border-radius: 8px;
+}
+
+QTabBar::tab {
+    padding: 7px 12px;
+    margin-right: 2px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+QHeaderView::section {
+    padding: 6px 8px;
+}
+
+QPushButton {
+    min-height: 24px;
+    padding: 4px 12px;
+    border-radius: 7px;
+}
+
+QToolButton {
+    padding: 3px;
+    border-radius: 6px;
+}
+
+QGroupBox {
+    margin-top: 20px;
+    padding: 10px 8px 8px 8px;
+    border-radius: 8px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 6px;
 }
 
 QPushButton#TogglableStatusBarButton {
-    color: #959595;
+    color: palette(mid);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
 QPushButton#TogglableStatusBarButton:checked {
-    color: #000000;
+    color: palette(text);
 }
 
 QPushButton#TogglableStatusBarButton:hover {
-    border: 1px solid #76797C;
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
-QPushButton#RendererStatusBarButton {
-    color: #656565;
+QPushButton#RendererStatusBarButton,
+QPushButton#RefreshButton,
+QPushButton#GPUStatusBarButton {
+    color: palette(mid);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
-QPushButton#RendererStatusBarButton:hover {
-    border: 1px solid #76797C;
+QPushButton#RendererStatusBarButton:hover,
+QPushButton#RefreshButton:hover,
+QPushButton#GPUStatusBarButton:hover {
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
 QPushButton#RendererStatusBarButton:checked {
-    color: #e85c00;
+    color: #c96a11;
 }
 
 QPushButton#RendererStatusBarButton:!checked {
-    color: #0066ff;
-}
-
-QPushButton#RefreshButton {
-    color: #656565;
-    border: 1px solid transparent;
-    background-color: transparent;
-    padding: 0px 3px 0px 3px;
-    text-align: center;
-}
-
-QPushButton#RefreshButton:hover {
-    border: 1px solid #76797C;
-}
-
-QPushButton#GPUStatusBarButton {
-    color: #656565;
-    border: 1px solid transparent;
-    background-color: transparent;
-    padding: 0px 3px 0px 3px;
-    text-align: center;
-}
-
-QPushButton#GPUStatusBarButton:hover {
-    border: 1px solid #76797C;
+    color: #1476d1;
 }
 
 QPushButton#GPUStatusBarButton:checked {
-    color: #b06020;
+    color: #b45a1f;
 }
 
 QPushButton#GPUStatusBarButton:!checked {
-    color: #109010;
+    color: #208a3a;
 }
 
 QPushButton#DockingStatusBarButton {
     min-width: 0px;
-    color: #000000;
+    color: palette(text);
     border: 1px solid transparent;
     background-color: transparent;
-    padding: 0px 3px 0px 3px;
+    padding: 1px 6px;
+    border-radius: 6px;
     text-align: center;
 }
 
 QPushButton#DockingStatusBarButton:hover {
-    border: 1px solid #76797C;
+    border: 1px solid palette(midlight);
+    background-color: palette(alternate-base);
 }
 
 QPushButton#buttonRefreshDevices {
-    min-width: 21px;
-    min-height: 21px;
-    max-width: 21px;
-    max-height: 21px;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
 }
 
 QPushButton#button_reset_defaults {
-    min-width: 57px;
-    padding: 4px 8px;
+    min-width: 72px;
+    padding: 4px 10px;
 }
 
 /* QGroupBox --------------------------------------------------------------

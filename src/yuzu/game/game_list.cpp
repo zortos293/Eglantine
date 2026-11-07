@@ -8,7 +8,9 @@
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QFont>
 #include <QHeaderView>
+#include <QIcon>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -332,8 +334,18 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
     m_currentView->setEnabled(true);
 
     int children_total = 0;
-    for (int i = 1; i < item_model->rowCount() - 1; ++i) {
-        children_total += item_model->item(i, 0)->rowCount();
+    if (m_isTreeMode) {
+        for (int i = 1; i < item_model->rowCount() - 1; ++i) {
+            children_total += item_model->item(i, 0)->rowCount();
+        }
+    } else {
+        for (int i = 0; i < item_model->rowCount(); ++i) {
+            const auto* item = item_model->item(i, 0);
+            if (item->data(GameListItem::TypeRole).value<GameListItemType>() ==
+                GameListItemType::Game) {
+                ++children_total;
+            }
+        }
     }
 
     search_field->setFilterResult(children_total, children_total);
@@ -341,9 +353,16 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
         search_field->setFocus();
     }
 
-    // TODO: carousel/grid impl.
-    item_model->sort(tree_view->header()->sortIndicatorSection(),
-                     tree_view->header()->sortIndicatorOrder());
+    const int sort_column = tree_view->header()->sortIndicatorSection();
+    const auto sort_order = tree_view->header()->sortIndicatorOrder();
+    if (m_isTreeMode) {
+        item_model->sort(sort_column, sort_order);
+    } else {
+        const QList<QStandardItem*> add_folder_row =
+            item_model->takeRow(item_model->rowCount() - 1);
+        item_model->sort(sort_column, sort_order);
+        item_model->appendRow(add_folder_row);
+    }
 
     // A repopulate (a directory removed, deep scan toggled) replaces the rows: apply the search
     // text the user still has typed to them.
@@ -811,14 +830,31 @@ GameListPlaceholder::GameListPlaceholder(MainWindow* parent) : QWidget{parent} {
     image = new QLabel;
     text = new QLabel;
     layout->setAlignment(Qt::AlignCenter);
-    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
+    layout->setContentsMargins(32, 32, 32, 48);
+    layout->setSpacing(18);
+    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(168));
+    image->setAlignment(Qt::AlignHCenter);
+    image->setObjectName(QStringLiteral("gameListPlaceholderImage"));
 
     RetranslateUI();
     QFont font = text->font();
-    font.setPointSize(20);
+    font.setPointSize(18);
+    font.setWeight(QFont::Medium);
     text->setFont(font);
     text->setAlignment(Qt::AlignHCenter);
-    image->setAlignment(Qt::AlignHCenter);
+    text->setWordWrap(true);
+    text->setObjectName(QStringLiteral("gameListPlaceholderText"));
+    text->setMaximumWidth(520);
+
+    setObjectName(QStringLiteral("gameListPlaceholder"));
+    setCursor(Qt::PointingHandCursor);
+    setStyleSheet(QStringLiteral(
+        "QWidget#gameListPlaceholder QLabel#gameListPlaceholderText {"
+        "  color: palette(text);"
+        "}"
+        "QWidget#gameListPlaceholder QLabel#gameListPlaceholderImage {"
+        "  opacity: 0.9;"
+        "}"));
 
     layout->addWidget(image);
     layout->addWidget(text);
