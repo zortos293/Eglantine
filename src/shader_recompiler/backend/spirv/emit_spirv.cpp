@@ -647,35 +647,9 @@ void PatchMeshInstructions(std::vector<u32>& code, const EmitContext& ctx) {
 } // Anonymous namespace
 
 std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info, IR::Program& program, Bindings& bindings) {
-    // The cooperative-matrix HMMA path needs per-subgroup scratch past the program's own shared
-    // memory (explicit workgroup layouts alias every shared variable at offset 0).
-    bool tensor_coopmat{};
-    u32 tensor_scratch_bytes{};
-    if (profile.support_cooperative_matrix_f16 && program.stage == Stage::Compute) {
-        for (const auto* block : program.blocks) {
-            for (const auto& inst : block->Instructions()) {
-                tensor_coopmat |= inst.GetOpcode() == IR::Opcode::TensorMulAdd;
-            }
-        }
-        if (tensor_coopmat) {
-            const u32 invocations = program.workgroup_size[0] * program.workgroup_size[1] *
-                                    program.workgroup_size[2];
-            const u32 subgroups = (invocations + 31) / 32;
-            const u32 scratch_offset = (program.shared_memory_size + 15U) & ~15U;
-            const u32 total = scratch_offset + subgroups * 384U * 4U;
-            // Past the device limit the pipeline would fail to build: keep the emulation.
-            if (profile.max_compute_shared_memory_size != 0 &&
-                total > profile.max_compute_shared_memory_size) {
-                tensor_coopmat = false;
-            } else {
-                tensor_scratch_bytes = scratch_offset;
-                program.shared_memory_size = total;
-            }
-        }
-    }
+    const std::optional<u32> tensor_scratch_word{ReserveCooperativeHmmaScratch(profile, program)};
     EmitContext ctx{profile, runtime_info, program, bindings};
-    ctx.tensor_coopmat = tensor_coopmat;
-    ctx.tensor_scratch_word = tensor_scratch_bytes / 4U;
+    ctx.tensor_scratch_word = tensor_scratch_word;
     DefineSoftwareMatrixFunctions(ctx, program);
     const Id main{DefineMain(ctx, program)};
     DefineEntryPoint(program, ctx, main);
@@ -693,7 +667,6 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
     if (ctx.cooperative_hmma) {
         PatchCooperativeHmma(code, *ctx.cooperative_hmma);
     }
-    PatchCooperativeMatrixInstructions(code, ctx);
     program.info.uses_cooperative_matrix = ctx.cooperative_hmma.has_value();
     return code;
 }
