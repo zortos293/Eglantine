@@ -2831,6 +2831,25 @@ private:
         const u64 pts = u64{w[words]} | (u64{w[words + 1]} << 32);
         const bool end = (w[words + 2] & 0xFF) != 0;
         Log(ctx, "submit");
+        // The SDK answers busy when the decoder cannot take a packet, and the client retries after
+        // the submission-ready event. Taking every packet let a player queue a whole movie: Ocarina
+        // of Time's title movie went in at ~330 packets a second (2,600 queued), and until the
+        // last was in, its pictures came at 20-28 fps, so the video started ~11 s behind its
+        // audio. End of stream is never refused.
+        if (!end) {
+            std::scoped_lock lk{m_mutex};
+            if (m_inputs.Full()) {
+                if (Nx2VideoTraceEnabled()) {
+                    LOG_INFO(Service, "nx2:vdec trace refuse syncpoint={} pts={} queued={}",
+                             m_syncpoint, pts, m_inputs.Size());
+                }
+                // nn::codec's module (111) is HwOpus in ErrorModule
+                constexpr Result ResultDecoderBusy{ErrorModule::HwOpus, 3603};
+                IPC::ResponseBuilder rb{ctx, 2};
+                rb.PushRaw<u32>(ResultDecoderBusy.raw);
+                return;
+            }
+        }
         Input input{{}, pts, end};
         if (!ctx.BufferDescriptorA().empty()) {
             const auto data = ctx.ReadBufferA(0);
