@@ -91,6 +91,8 @@ struct Profile {
     bool has_broken_fp16_float_controls{};
     /// HMMA through SPV_KHR_cooperative_matrix (16x16x16 fp16, subgroup scope, 32 lanes).
     bool support_cooperative_matrix_f16{};
+    /// Shared memory limit for compute shaders in bytes (0 = unknown).
+    u32 max_compute_shared_memory_size{};
     /// Declaring fp32 denorm flush to zero miscompiles on some drivers
     bool has_broken_fp32_denorm_flush{};
     /// Dynamic vec4 indexing is broken on some OpenGL drivers

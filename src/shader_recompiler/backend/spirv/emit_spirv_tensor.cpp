@@ -360,6 +360,7 @@ void PatchCooperativeMatrixInstructions(std::vector<u32>& code, const EmitContex
     const auto set_opcode = [&](size_t offset, spv::Op op) {
         code[offset] = (code[offset] & 0xFFFF0000u) | static_cast<u32>(op);
     };
+    size_t types{}, ops{}, stores{};
     size_t offset = 5;
     while (offset < code.size()) {
         const u32 word_count{code[offset] >> 16};
@@ -371,18 +372,26 @@ void PatchCooperativeMatrixInstructions(std::vector<u32>& code, const EmitContex
             std::ranges::find(ctx.coopmat_type_markers, code[offset + 1]) !=
                 ctx.coopmat_type_markers.end()) {
             set_opcode(offset, spv::Op::OpTypeCooperativeMatrixKHR);
+            ++types;
         } else if (opcode == spv::Op::OpSelect && word_count == 6) {
             const auto it{std::ranges::find(ctx.coopmat_op_markers, code[offset + 2],
                                             &std::pair<u32, spv::Op>::first)};
             if (it != ctx.coopmat_op_markers.end()) {
                 set_opcode(offset, it->second);
+                ++ops;
             }
         } else if (opcode == spv::Op::OpStore && word_count == 5 &&
                    std::ranges::find(ctx.coopmat_store_markers, code[offset + 1]) !=
                        ctx.coopmat_store_markers.end()) {
             set_opcode(offset, spv::Op::OpCooperativeMatrixStoreKHR);
+            ++stores;
         }
         offset += word_count;
+    }
+    // A marker left behind is invalid SPIR-V: fail the shader instead of handing it to the driver.
+    if (types != ctx.coopmat_type_markers.size() || ops != ctx.coopmat_op_markers.size() ||
+        stores != ctx.coopmat_store_markers.size()) {
+        throw LogicError("Cooperative matrix markers not all patched");
     }
 }
 

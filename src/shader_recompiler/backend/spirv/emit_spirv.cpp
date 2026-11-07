@@ -661,8 +661,16 @@ std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_in
             const u32 invocations = program.workgroup_size[0] * program.workgroup_size[1] *
                                     program.workgroup_size[2];
             const u32 subgroups = (invocations + 31) / 32;
-            tensor_scratch_bytes = (program.shared_memory_size + 15U) & ~15U;
-            program.shared_memory_size = tensor_scratch_bytes + subgroups * 384U * 4U;
+            const u32 scratch_offset = (program.shared_memory_size + 15U) & ~15U;
+            const u32 total = scratch_offset + subgroups * 384U * 4U;
+            // Past the device limit the pipeline would fail to build: keep the emulation.
+            if (profile.max_compute_shared_memory_size != 0 &&
+                total > profile.max_compute_shared_memory_size) {
+                tensor_coopmat = false;
+            } else {
+                tensor_scratch_bytes = scratch_offset;
+                program.shared_memory_size = total;
+            }
         }
     }
     EmitContext ctx{profile, runtime_info, program, bindings};

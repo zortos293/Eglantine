@@ -636,8 +636,8 @@ FN_MAX_LIMIT_LIST
         return extensions.push_descriptor;
     }
 
-    /// Returns true if HMMA can run on VK_KHR_cooperative_matrix (EDEN_NX2_TENSOR_COOPMAT=1): fp16
-    /// matrices need shaderFloat16 on the device even where fp16 arithmetic is avoided.
+    /// Returns true if HMMA can run on VK_KHR_cooperative_matrix: fp16 matrices need
+    /// shaderFloat16 on the device even where fp16 arithmetic is avoided.
     bool IsCooperativeMatrixF16Supported() const {
         return extensions.cooperative_matrix && features.cooperative_matrix.cooperativeMatrix &&
                features.shader_float16_int8.shaderFloat16;
