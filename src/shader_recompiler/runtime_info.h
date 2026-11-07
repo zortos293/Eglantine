@@ -117,6 +117,21 @@ struct RuntimeInfo {
 
     /// Dual source blending
     bool dual_source_blend{};
+
+    /// Mesh program on a device without VK_EXT_mesh_shader: emit it as a compute shader that
+    /// writes its vertices and primitives to the storage buffer at mesh_output_binding (see
+    /// EmitMeshEmulationVertex for the layout), for a vertex shader to draw them.
+    bool mesh_as_compute{};
+    u32 mesh_output_binding{};
+    /// Mesh emulation with a task program (mesh_as_compute on both). The task's compute shader
+    /// writes its payload (count at word 1) to the payload buffer, task_payload_words words per
+    /// task workgroup. Each mesh workgroup finds its task in the map buffer (task of each mesh
+    /// workgroup) and its index within the task's in the offsets buffer (first mesh workgroup
+    /// of each task), and copies that task's payload. ~0 when there is no task program.
+    u32 mesh_task_payload_binding{~0U};
+    u32 mesh_task_offsets_binding{~0U};
+    u32 mesh_task_map_binding{~0U};
+    u32 mesh_task_payload_stride{}; ///< payload buffer words per task workgroup
 };
 
 } // namespace Shader
