@@ -763,6 +763,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                                VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
     }
 
+    // The float16 workarounds above keep shaders from doing float16 arithmetic. Cooperative
+    // matrices only pass 16-bit floats to the tensor cores and back, so they keep the device
+    // feature, which no other shader then uses.
+    float16_math = features.shader_float16_int8.shaderFloat16;
+    if (extensions.cooperative_matrix) {
+        features.shader_float16_int8.shaderFloat16 = VK_TRUE;
+        LOG_INFO(Render_Vulkan, "VK_KHR_cooperative_matrix enabled for guest tensor operations");
+    }
+
     logical = vk::Device::Create(physical, queue_cis, ExtensionListForVulkan(loaded_extensions), first_next, dld);
 
     graphics_queue = logical.GetQueue(graphics_family);
@@ -1420,6 +1429,11 @@ bool Device::GetSuitability(bool requires_swapchain) {
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT;
         SetNext(next, properties.custom_border_color);
     }
+    if (extensions.cooperative_matrix) {
+        properties.cooperative_matrix.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_KHR;
+        SetNext(next, properties.cooperative_matrix);
+    }
 
     // Perform the property fetch.
     physical.GetProperties2(properties2);
@@ -1699,6 +1713,51 @@ void Device::RemoveUnsuitableExtensions() {
                                      extensions.shader_maximal_reconvergence;
     RemoveExtensionFeatureIfUnsuitable(extensions.shader_quad_control, features.shader_quad_control,
                                        VK_KHR_SHADER_QUAD_CONTROL_EXTENSION_NAME);
+
+    // VK_KHR_cooperative_matrix
+    // Used only for the guest's HMMA.16816.F16, as a subgroup operation of compute shaders whose
+    // subgroups are the guest's 32-lane warp. The matrices hold 16-bit floats, so the device needs
+    // shaderFloat16. Shaders with them use the Vulkan memory model and run with full subgroups.
+    // The guest's own M=16 N=8 K=16 shape is preferred; without it, a 16x16x16 shape runs HMMA
+    // through shared memory with the compute subgroups forced to 32 lanes.
+    {
+        const auto shapes = physical.GetCooperativeMatrixPropertiesKHR();
+        const auto has_shape = [&](u32 columns) {
+            return std::ranges::any_of(shapes, [=](const VkCooperativeMatrixPropertiesKHR& shape) {
+                return shape.MSize == 16 && shape.NSize == columns && shape.KSize == 16 &&
+                       shape.AType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                       shape.BType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                       shape.CType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                       shape.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                       shape.saturatingAccumulation == VK_FALSE &&
+                       shape.scope == VK_SCOPE_SUBGROUP_KHR;
+            });
+        };
+        const bool usable = extensions.cooperative_matrix &&
+                            features.cooperative_matrix.cooperativeMatrix &&
+                            (properties.cooperative_matrix.cooperativeMatrixSupportedStages &
+                             VK_SHADER_STAGE_COMPUTE_BIT) != 0 &&
+                            features.shader_float16_int8.shaderFloat16 &&
+                            features.vulkan_memory_model.vulkanMemoryModel &&
+                            features.vulkan_memory_model.vulkanMemoryModelDeviceScope &&
+                            extensions.subgroup_size_control &&
+                            features.subgroup_size_control.computeFullSubgroups;
+        cooperative_hmma_16x8x16 =
+            usable && has_shape(8) &&
+            (properties.subgroup_properties.supportedStages & VK_SHADER_STAGE_COMPUTE_BIT) != 0 &&
+            properties.subgroup_properties.subgroupSize == GuestWarpSize &&
+            // Compute subgroups may vary between these sizes (always with SPIR-V 1.6), and the
+            // per-lane matrix layout needs exactly the guest's 32 lanes.
+            properties.subgroup_size_control.minSubgroupSize == GuestWarpSize &&
+            properties.subgroup_size_control.maxSubgroupSize == GuestWarpSize;
+        cooperative_hmma_16x16x16 =
+            usable && has_shape(16) && IsGuestWarpSizeSupported(VK_SHADER_STAGE_COMPUTE_BIT);
+        extensions.cooperative_matrix = cooperative_hmma_16x8x16 || cooperative_hmma_16x16x16;
+        features.cooperative_matrix.cooperativeMatrixRobustBufferAccess = VK_FALSE;
+        RemoveExtensionFeatureIfUnsuitable(extensions.cooperative_matrix,
+                                           features.cooperative_matrix,
+                                           VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME);
+    }
 
     // VK_KHR_workgroup_memory_explicit_layout
     extensions.workgroup_memory_explicit_layout =
