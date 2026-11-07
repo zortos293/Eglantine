@@ -2890,9 +2890,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, DA
         }
         const u32 block_width = VideoCore::Surface::DefaultBlockWidth(new_image.info.format);
         const u32 block_height = VideoCore::Surface::DefaultBlockHeight(new_image.info.format);
-        if (can_rescale && (block_width > 1 || block_height > 1)) {
-            // CopyImage scales a rescaled copy's extent in blocks, which can round below the
-            // scaled image's size in blocks.
+        if (block_width > 1 || block_height > 1) {
+            // Compressed alias copy extents are in blocks, but CopyImage passes them on as texels.
             return false;
         }
         for (s32 level = 0; level < new_image.info.resources.levels; ++level) {
