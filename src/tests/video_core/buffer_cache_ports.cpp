@@ -2,18 +2,23 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <barrier>
 #include <condition_variable>
 #include <cstring>
+#include <exception>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <thread>
+#include <utility>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
 #include "common/page_table.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_process.h"
@@ -256,7 +261,18 @@ struct BufferCacheTestAccess {
         return cache.memory_tracker.cpu_marks;
     }
     static size_t Deferred(Cache& cache) {
+        std::scoped_lock lock{cache.deferred_page_writes_mutex};
         return cache.deferred_page_writes.size();
+    }
+    static void Defer(Cache& cache, DAddr address, u64 size) {
+        cache.DeferPageWrite(address, size);
+    }
+    static void ApplyDeferred(Cache& cache) {
+        cache.ApplyDeferredPageWrites();
+    }
+    static std::vector<std::pair<DAddr, u64>> DeferredRanges(Cache& cache) {
+        std::scoped_lock lock{cache.deferred_page_writes_mutex};
+        return cache.deferred_page_writes;
     }
 };
 
@@ -668,16 +684,23 @@ public:
         wake.notify_all();
         thread.join();
     }
+    /// Runs `work` on the owner and rethrows what it threw (a failed REQUIRE included).
     void Do(std::function<void()> work) {
         std::unique_lock lock{mutex};
         job = std::move(work);
         wake.notify_all();
         ready.wait(lock, [&] { return !job; });
+        if (auto thrown = std::exchange(error, nullptr)) {
+            std::rethrow_exception(thrown);
+        }
     }
 
 private:
     void Run(std::stop_token stop) {
         VideoCommon::GpuSplit::MarkGpuThread();
+        SCOPE_EXIT {
+            VideoCommon::GpuSplit::UnmarkGpuThread();
+        };
         {
             std::scoped_lock lock{mutex};
             marked = true;
@@ -687,18 +710,22 @@ private:
         while (!stop.stop_requested()) {
             wake.wait(lock, [&] { return job || stop.stop_requested(); });
             if (job) {
-                job();
+                try {
+                    job();
+                } catch (...) {
+                    error = std::current_exception();
+                }
                 job = nullptr;
                 ready.notify_all();
             }
         }
-        VideoCommon::GpuSplit::UnmarkGpuThread();
     }
 
     std::mutex mutex;
     std::condition_variable wake;
     std::condition_variable ready;
     std::function<void()> job;
+    std::exception_ptr error;
     bool marked{};
     std::jthread thread;
 };
@@ -835,4 +862,79 @@ TEST_CASE("The GPU thread mark follows the thread's lifetime",
         CHECK_FALSE(VideoCommon::GpuSplit::OwnsScheduler());
     }
     CHECK_FALSE(VideoCommon::GpuSplit::HasGpuThread());
+}
+
+TEST_CASE("Deferred page writes merge only where they overlap or touch",
+          "[buffer_ports][deferred_page_writes]") {
+    using Ranges = std::vector<std::pair<DAddr, u64>>;
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    std::memset(f.bytes + 0x10100, 0xee, 0x20);
+    std::memset(f.bytes + 0x10400, 0xee, 4);
+
+    for (int i = 0; i < 3; ++i) {
+        f.cache->WriteMemory(0x20100, 0x10);
+    }
+    CHECK(Access::DeferredRanges(*f.cache) == Ranges{{0x20100, 0x10}});
+    f.cache->WriteMemory(0x20108, 0x10);
+    CHECK(Access::DeferredRanges(*f.cache) == Ranges{{0x20100, 0x18}});
+    f.cache->WriteMemory(0x20118, 8);
+    CHECK(Access::DeferredRanges(*f.cache) == Ranges{{0x20100, 0x20}});
+    f.cache->WriteMemory(0x200f8, 8);
+    CHECK(Access::DeferredRanges(*f.cache) == Ranges{{0x200f8, 0x28}});
+    // A gap holds GPU-written bytes the guest copy lacks, so a range across it can't merge.
+    f.cache->WriteMemory(0x20400, 4);
+    CHECK(Access::DeferredRanges(*f.cache) == Ranges{{0x200f8, 0x28}, {0x20400, 4}});
+
+    owner.Do([&] { f.cache->DownloadMemory(0x20000, 0x1000); });
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(f.bytes[0x10000] == 0x12);
+    CHECK(f.bytes[0x10200] == 0x12);
+    CHECK(f.bytes[0x10404] == 0x12);
+    CHECK(f.bytes[0x10fff] == 0x12);
+    CHECK(std::all_of(f.bytes + 0x10100, f.bytes + 0x10120, [](u8 b) { return b == 0xee; }));
+    CHECK(std::all_of(f.bytes + 0x10400, f.bytes + 0x10404, [](u8 b) { return b == 0xee; }));
+}
+
+TEST_CASE("Deferred page writes queued from several threads are each applied once",
+          "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    constexpr int Threads = 4;
+    constexpr int WritesPerThread = 64;
+    const u32 marks = Access::CpuMarks(*f.cache);
+    std::atomic<bool> done{};
+    {
+        std::vector<std::jthread> writers;
+        for (int t = 0; t < Threads; ++t) {
+            writers.emplace_back([&, t] {
+                for (int i = 0; i < WritesPerThread; ++i) {
+                    // 8 bytes every 16: no two writes touch, so none merge.
+                    Access::Defer(*f.cache, 0x20000 + (i * Threads + t) * 0x10, 8);
+                }
+            });
+        }
+        std::jthread drainer{[&] {
+            while (!done.load(std::memory_order_acquire)) {
+                owner.Do([&] { Access::ApplyDeferred(*f.cache); });
+            }
+        }};
+        for (auto& writer : writers) {
+            writer.join();
+        }
+        done.store(true, std::memory_order_release);
+    }
+    owner.Do([&] { Access::ApplyDeferred(*f.cache); });
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(Access::CpuMarks(*f.cache) == marks + Threads * WritesPerThread);
+}
+
+TEST_CASE("A failure on the owner thread reaches the test and leaves the owner usable",
+          "[buffer_ports][deferred_page_writes]") {
+    OwnerThread owner;
+    CHECK_THROWS_AS(owner.Do([] { throw std::runtime_error{"owner job failed"}; }),
+                    std::runtime_error);
+    bool ran = false;
+    owner.Do([&] { ran = VideoCommon::GpuSplit::OwnsScheduler(); });
+    CHECK(ran);
 }

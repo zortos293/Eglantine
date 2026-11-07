@@ -224,7 +224,7 @@ void BufferCache<P>::WriteMemory(DAddr device_addr, u64 size, bool keep_page_gpu
     if (keep_page_gpu_data && gpu_modified_ranges.Intersects(page_begin, page_end - page_begin) &&
         (VideoCommon::GpuSplit::OwnsScheduler() || VideoCommon::GpuSplit::HasGpuThread())) {
         if (!VideoCommon::GpuSplit::OwnsScheduler()) {
-            deferred_page_writes.emplace_back(device_addr, size);
+            DeferPageWrite(device_addr, size);
             return;
         }
         PreservePageGpuData(device_addr, size);
@@ -260,12 +260,37 @@ void BufferCache<P>::PreservePageGpuData(DAddr device_addr, u64 size) {
 }
 
 template <class P>
+void BufferCache<P>::DeferPageWrite(DAddr device_addr, u64 size) {
+    std::scoped_lock lock{deferred_page_writes_mutex};
+    // Only ranges that overlap or touch merge: the inline path uploads the whole range from
+    // guest memory, which holds stale bytes wherever the CPU didn't write.
+    const DAddr end = device_addr + size;
+    const auto merged = std::ranges::find_if(deferred_page_writes, [&](const auto& write) {
+        return write.first <= end && device_addr <= write.first + write.second;
+    });
+    if (merged != deferred_page_writes.end()) {
+        const DAddr begin = (std::min)(merged->first, device_addr);
+        merged->second = (std::max)(merged->first + merged->second, end) - begin;
+        merged->first = begin;
+    } else {
+        deferred_page_writes.emplace_back(device_addr, size);
+    }
+    has_deferred_page_writes.store(true, std::memory_order_release);
+}
+
+template <class P>
 void BufferCache<P>::ApplyDeferredPageWrites() {
-    if (deferred_page_writes.empty() || !VideoCommon::GpuSplit::OwnsScheduler()) {
+    if (!has_deferred_page_writes.load(std::memory_order_acquire) ||
+        !VideoCommon::GpuSplit::OwnsScheduler()) {
         return;
     }
     // Taken first: the downloads below come back here.
-    const auto writes = std::exchange(deferred_page_writes, {});
+    std::vector<std::pair<DAddr, u64>> writes;
+    {
+        std::scoped_lock lock{deferred_page_writes_mutex};
+        writes = std::exchange(deferred_page_writes, {});
+        has_deferred_page_writes.store(false, std::memory_order_relaxed);
+    }
     for (const auto& [device_addr, size] : writes) {
         PreservePageGpuData(device_addr, size);
     }

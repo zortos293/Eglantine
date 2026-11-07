@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <array>
+#include <atomic>
 #include <bit>
 #include <functional>
 #include <memory>
@@ -621,6 +622,9 @@ private:
     /// by the owner where no Buffer reference is held, before it uploads or downloads.
     void ApplyDeferredPageWrites();
 
+    /// Queues a write for ApplyDeferredPageWrites, merged with a queued range it overlaps.
+    void DeferPageWrite(DAddr device_addr, u64 size);
+
     void DeleteBuffer(BufferId buffer_id, bool do_not_mark = false);
 
     [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, u32 cbuf_index, bool is_written,
@@ -761,7 +765,10 @@ private:
     bool download_cpu_read_ranges{};
     Common::RangeSet<DAddr> gpu_modified_ranges;
     /// Writes over pages holding GPU-written bytes, made by threads that don't own the scheduler.
+    /// Own lock: OpenGL compute dispatches update buffers without `mutex`.
     std::vector<std::pair<DAddr, u64>> deferred_page_writes;
+    std::mutex deferred_page_writes_mutex;
+    std::atomic<bool> has_deferred_page_writes{};
     std::deque<Common::RangeSet<DAddr>> committed_gpu_modified_ranges;
 
     // Async Buffers
