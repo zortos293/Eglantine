@@ -21,6 +21,8 @@ struct HostTranslateInfo {
     u32 max_per_stage_descriptor_sampled_images{}; ///< maximum sampled descriptors per stage
     u32 max_per_stage_resources{};                 ///< maximum resources per stage
     u32 max_per_stage_descriptor_storage_buffers{}; ///< maximum storage buffers per stage
+    /// Maximum samplers per stage, which a combined image sampler (a texture) counts against too
+    u32 max_per_stage_descriptor_samplers{};
     u32 max_descriptor_set_samplers{};
     u32 max_descriptor_set_uniform_buffers{};
     u32 max_descriptor_set_uniform_buffers_dynamic{};
@@ -42,6 +44,10 @@ struct HostTranslateInfo {
                                         ///< control flow
     bool single_lane_geometry_subgroups{};
     bool support_byte_addressed_r16{};
+    /// True when a handle read from a table at a per-invocation index may become a descriptor
+    /// array of the table's entries (not OpenGL: its pipelines bind at most 64 textures; Vulkan
+    /// only with nonuniform sampled image array indexing)
+    bool support_handle_table_arrays{};
 
     void ApplyDescriptorLimitPolicy() noexcept {
         if (min_ssbo_alignment == 0) {
@@ -50,6 +56,7 @@ struct HostTranslateInfo {
         ApplyDescriptorLimitFallback(max_per_stage_descriptor_sampled_images);
         ApplyDescriptorLimitFallback(max_per_stage_resources);
         ApplyDescriptorLimitFallback(max_per_stage_descriptor_storage_buffers);
+        ApplyDescriptorLimitFallback(max_per_stage_descriptor_samplers);
         ApplyDescriptorLimitFallback(max_descriptor_set_samplers);
         ApplyDescriptorLimitFallback(max_descriptor_set_uniform_buffers);
         ApplyDescriptorLimitFallback(max_descriptor_set_uniform_buffers_dynamic);
