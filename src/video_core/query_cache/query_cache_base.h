@@ -106,6 +106,8 @@ public:
 
     void CounterClose(QueryType counter_type);
 
+    /// Queues a query report (a counter value or the payload, with a timestamp when flagged) to
+    /// be written at `addr`.
     void CounterReport(GPUVAddr addr, QueryType counter_type, QueryPropertiesFlags flags,
                        u32 payload, u32 subreport);
 
