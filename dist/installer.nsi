@@ -22,7 +22,7 @@ ManifestDPIAware true
 
 !define PRODUCT_NAME "Lichii"
 !define PRODUCT_PUBLISHER "Lichii contributors"
-!define PRODUCT_WEB_SITE "https://github.com/zortos293/Eglantine"
+!define PRODUCT_WEB_SITE "https://github.com/zortos293/Lichii"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
@@ -162,6 +162,7 @@ Section Uninstall
 
   ; Be a bit careful to not delete files a user may have put into the install directory.
   Delete "$INSTDIR\lichii.exe"
+  Delete "$INSTDIR\lichii-cli.exe"
   Delete "$INSTDIR\eden-cli.exe"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\LICENSE.txt"

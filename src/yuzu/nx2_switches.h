@@ -97,7 +97,7 @@ static void LoadNx2Switches(const char* argv0) {
     const auto config_base = Common::FS::GetDataDirectory("XDG_CONFIG_HOME");
 #endif
     if (config_base.is_absolute()) {
-        ParseSwitchFile(config_base / EDEN_DIR / "nx2_switches.txt", entries);
+        ParseSwitchFile(config_base / LICHII_DIR / "nx2_switches.txt", entries);
     }
     for (const auto& [name, value] : entries) {
         if (std::getenv(name.c_str()) != nullptr) {

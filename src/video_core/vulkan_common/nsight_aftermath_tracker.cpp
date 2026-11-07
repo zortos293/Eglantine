@@ -51,7 +51,7 @@ NsightAftermathTracker::NsightAftermathTracker() {
         return;
     }
     const auto directory = CreateAftermathDumpDirectory(
-        Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir) / "gpucrash");
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::LogDir) / "gpucrash");
     if (!directory) {
         LOG_ERROR(Render_Vulkan, "Failed to create Nsight Aftermath dump directory");
         return;
@@ -179,7 +179,7 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
 
 void NsightAftermathTracker::OnCrashDumpDescriptionCallback(
     PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description) {
-    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "Eden");
+    add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "Lichii");
 }
 
 void NsightAftermathTracker::GpuCrashDumpCallback(const void* gpu_crash_dump,

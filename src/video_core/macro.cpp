@@ -1328,7 +1328,7 @@ Macro::Opcode MacroJITx64Impl::GetOpCode() const {
 #endif
 
 static void Dump(u64 hash, std::span<const u32> code, bool decompiled = false) {
-    const auto dump_dir{Common::FS::GetEdenPath(Common::FS::EdenPath::DumpDir)};
+    const auto dump_dir{Common::FS::GetLichiiPath(Common::FS::LichiiPath::DumpDir)};
     if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Common_Filesystem, "Failed to create dump directory");
         return;

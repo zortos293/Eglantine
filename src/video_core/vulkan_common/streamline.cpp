@@ -232,7 +232,7 @@ std::vector<std::string> Names(uint32_t count, const char** names) {
 } // Anonymous namespace
 
 std::filesystem::path UserFolder() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::StreamlineDir);
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::StreamlineDir);
 }
 
 bool IsStreamlineModule(const std::filesystem::path& path) {

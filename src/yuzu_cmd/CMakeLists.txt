@@ -45,7 +45,7 @@ if (ENABLE_OPENGL)
 endif()
 target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-create_resource("../../dist/eden.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
+create_resource("../../dist/lichii.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
 target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 
 target_link_libraries(yuzu-cmd PRIVATE SDL3::SDL3)

@@ -26,7 +26,7 @@ struct PlayTimeElement {
 };
 
 std::optional<std::filesystem::path> GetCurrentUserPlayTimePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::PlayTimeDir) /
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::PlayTimeDir) /
            "playtime.bin";
 }
 

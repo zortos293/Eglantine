@@ -269,7 +269,7 @@ struct RestartHandoff {
 };
 
 static std::filesystem::path RestartHandoffPath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::EdenDir) / "restart-handoff.bin";
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::LichiiDir) / "restart-handoff.bin";
 }
 
 template <typename T>
@@ -341,7 +341,7 @@ static std::atomic_bool pack_nup_cancel{false};
 static std::atomic_bool unpack_nup_cancel{false};
 static std::atomic_bool edit_nup_cancel{false};
 
-// eden-cli --pack-nup <dump> [<out.nup>]; the output defaults to <dump>.nup next to the dump.
+// lichii-cli --pack-nup <dump> [<out.nup>]; the output defaults to <dump>.nup next to the dump.
 static bool PackNup(const std::string& source, const std::string& output) {
     const auto to_path = [](const std::string& utf8) {
         return std::filesystem::path{std::u8string{utf8.begin(), utf8.end()}};
@@ -382,7 +382,7 @@ static bool PackNup(const std::string& source, const std::string& output) {
     }
 }
 
-// eden-cli --unpack-nup <file.nup> [<out_dir>]; the output defaults to <name>/ next to the NUP.
+// lichii-cli --unpack-nup <file.nup> [<out_dir>]; the output defaults to <name>/ next to the NUP.
 static bool UnpackNup(const std::string& source, const std::string& output) {
     const auto to_path = [](const std::string& utf8) {
         return std::filesystem::path{std::u8string{utf8.begin(), utf8.end()}};

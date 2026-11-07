@@ -38,7 +38,7 @@ You must have GDB installed for aarch64 to debug the target. Install it through 
   - `sudo emerge --ask crossdev`
   - `sudo crossdev -t aarch64-unknown-linux-gnu --ex-gdb`
 
-Run `./build/bin/eden-cli -c <path to your config file (see logs where you run Eden normally to see where it is)> -d -g <path to game>`, or `Enable GDB Stub` at General > Debug, then hook up an aarch64-gdb:
+Run `./build/bin/lichii-cli -c <path to your config file (see logs where you run Lichii normally to see where it is)> -d -g <path to game>`, or `Enable GDB Stub` at General > Debug, then hook up an aarch64-gdb:
 
 - `target remote localhost:6543`
 
@@ -73,28 +73,28 @@ For more information type `info gdb` and read [the man page](https://man7.org/li
 
 RenderDoc is a free, cross platform, multi-graphics API debugger. It is an invaluable tool for diagnosing issues with graphics applications, and includes support for Vulkan. Get it from [renderdoc.org](https://renderdoc.org).
 
-RenderDoc can capture Eden's Vulkan output when its Vulkan layer is loaded before Eden creates the Vulkan device. Before using RenderDoc to diagnose issues, it's always good to make sure there are no validation errors. Any errors means the behavior of the application is undefined. That said, RenderDoc can help debug validation errors if you do have them.
+RenderDoc can capture Lichii's Vulkan output when its Vulkan layer is loaded before Lichii creates the Vulkan device. Before using RenderDoc to diagnose issues, it's always good to make sure there are no validation errors. Any errors means the behavior of the application is undefined. That said, RenderDoc can help debug validation errors if you do have them.
 
 ## Usage on Windows 
 
-You can either use RenderDoc UI to launch Eden, or you can make Eden attach it internally:
+You can either use RenderDoc UI to launch Lichii, or you can make Lichii attach it internally:
 
 On Windows PowerShell:
 ```powershell
 $env:ENABLE_VULKAN_RENDERDOC_CAPTURE='1'
-.\eden.exe
+.\lichii.exe
 ```
-When RenderDoc is attached, Eden logs the default Windows capture folder:
+When RenderDoc is attached, Lichii logs the default Windows capture folder:
 ```text
 %LOCALAPPDATA%\Temp\RenderDoc
 ```
 
-Press RenderDoc's capture hotkey, usually `F12`, to capture a frame. To stop using RenderDoc, close Eden and launch it again without `ENABLE_VULKAN_RENDERDOC_CAPTURE`.
+Press RenderDoc's capture hotkey, usually `F12`, to capture a frame. To stop using RenderDoc, close Lichii and launch it again without `ENABLE_VULKAN_RENDERDOC_CAPTURE`.
 
-## Eden Hotkey
+## Lichii Hotkey
 
-Eden also has a separate `Toggle Renderdoc Capture` hotkey behind the debug setting `renderdoc_hotkey`.
-That hotkey does not load or unload RenderDoc. It only toggles Eden's own manual capture through RenderDoc's API:
+Lichii also has a separate `Toggle Renderdoc Capture` hotkey behind the debug setting `renderdoc_hotkey`.
+That hotkey does not load or unload RenderDoc. It only toggles Lichii's own manual capture through RenderDoc's API:
 
 - First press: Starts a capture
 - Second press: Ends that capture

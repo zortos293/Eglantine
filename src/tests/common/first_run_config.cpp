@@ -52,11 +52,11 @@ private:
 class ConfigDirectory {
 public:
     ConfigDirectory()
-        : original{Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir)},
+        : original{Common::FS::GetLichiiPath(Common::FS::LichiiPath::ConfigDir)},
           path{std::filesystem::temp_directory_path() /
                fmt::format("lichii-config-{}", std::random_device{}())} {
         REQUIRE(std::filesystem::create_directory(path));
-        Common::FS::SetEdenPath(Common::FS::EdenPath::ConfigDir, path);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::ConfigDir, path);
         for (const auto& [key, setting] : Settings::values.linkage.by_key) {
             setting->SetGlobal(false);
             setting->LoadString("");
@@ -66,7 +66,7 @@ public:
     }
 
     ~ConfigDirectory() {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::ConfigDir, original);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::ConfigDir, original);
         std::error_code error;
         std::filesystem::remove_all(path, error);
     }

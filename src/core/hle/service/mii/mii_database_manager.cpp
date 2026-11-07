@@ -25,9 +25,9 @@ DatabaseManager::DatabaseManager() {}
 Result DatabaseManager::MountSaveData() {
     if (!is_save_data_mounted) {
         system_save_dir =
-            Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000030";
+            Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) / "system/save/8000000000000030";
         if (is_test_db) {
-            system_save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+            system_save_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) /
                               "system/save/8000000000000031";
         }
 

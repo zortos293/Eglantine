@@ -20,7 +20,7 @@ git fetch origin master:master
 git commit --amend -a --no-edit
 ```
 
-If the work is licensed/vendored from other people or projects, you may omit the license headers. Additionally, if you wish to retain authorship over a piece of code, you may attribute it to yourself; however, the code may be changed at any given point and brought under the attribution of Eden.
+If the work is licensed/vendored from other people or projects, you may omit the license headers. Additionally, if you wish to retain authorship over a piece of code, you may attribute it to yourself; however, the code may be changed at any given point and brought under the attribution of Lichii.
 
 For more information on the license header script, run `.ci/license-header.sh -h`.
 

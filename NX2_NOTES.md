@@ -12,15 +12,15 @@ scope for this pass.
 - Toolchain: VS 2026 (MSVC 14.51) via `vcvars64.bat`, Ninja from VS, CMake 4.4.
 - Configure:
   `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INTERMEDIATE_DIR_STRATEGY=SHORT -DENABLE_QT=OFF -DYUZU_CMD=ON -DENABLE_WEB_SERVICE=OFF -DYUZU_ROOM=OFF -DYUZU_TESTS=OFF -DENABLE_WERROR=OFF -DENABLE_UPDATE_CHECKER=OFF`
-- Build: `cmake --build build --target yuzu-cmd` -> `build/bin/eden-cli.exe`.
+- Build: `cmake --build build --target yuzu-cmd` -> `build/bin/lichii-cli.exe`.
 - Run (portable mode, `build/bin/user/` holds config/logs; no keys or firmware installed):
-  `eden-cli.exe -g "<title>\exefs\main"`
+  `lichii-cli.exe -g "<title>\exefs\main"`
 - Debug helpers:
   - `EDEN_NX2_SVC_TRACE=1` logs every SVC with arguments and results.
   - `EDEN_NX2_IPC_TRACE=1` logs every dispatched CMIF command and non-zero result words.
   - `EDEN_NX2_AUTO_STUB=1` answers every unknown command with an empty success (the
-    `use_auto_stub` setting gets reset by eden-cli's config rewrite). Used for all runs below.
-  - `eden-cli --filter "<log filter>"` sets the log filter for one run (e.g. `*:Info Loader:Debug`
+    `use_auto_stub` setting gets reset by lichii-cli's config rewrite). Used for all runs below.
+  - `lichii-cli --filter "<log filter>"` sets the log filter for one run (e.g. `*:Info Loader:Debug`
     to get module load addresses).
   - `tools/nx2/nso_syms.py <nso> addr|got|find ...` maps module offsets to exported symbols, GOT
     slots to imports, or searches symbol names. Eden's backtrace shows "unknown" modules for some
@@ -61,7 +61,7 @@ With the patched decoder, games 1/3/4 only leave ~60-110 rare SIMD encodings in 
 | 3 | Decoder | dynarmic had no LSE atomics, CAS/CASP, LDAPR, RETAA/RETAB, BRA*/BLRA*, LDRA*, PAC*/AUT*/XPAC*, PACGA, MTE ops. Title 1 has ~115k RETAB, ~37k LDAPR, ~25k LSE, ~6.6k CAS, ~2.5k SWP | dynarmic: decode ARMv8.1-8.5 instructions (atomics are exclusive load/op/store with retry; PAC is identity; MTE tags are 0) |
 | 4 | Loader | `main` identified as a bare NSO, so main.npdm/rtld/sdk were skipped, then a crash writing into an uninitialised process | loader: load a loose ExeFS when given its main |
 | 5 | NPDM parse (ErrorBadFileAccessControl) | Switch 2 ACID has a 0x300-byte signature/key area (Switch 1: 0x200); FAC/FAH offsets were also read without the block base | npdm: parse the Switch 2 ACID layout |
-| 6 | eden-cli crash on start/exit | `*appstate` never set, SDL3 callbacks returned SUCCESS (quit), InputSubsystem was a local of SDL_AppInit, mouse timer before mouse driver | eden-cli: fix SDL3 main-callback lifetime bugs |
+| 6 | lichii-cli crash on start/exit | `*appstate` never set, SDL3 callbacks returned SUCCESS (quit), InputSubsystem was a local of SDL_AppInit, mouse timer before mouse driver | lichii-cli: fix SDL3 main-callback lifetime bugs |
 | 7 | `nnosInitialize` abort | `svcGetInfo` 29/30 unknown (region between alias and ASLR) | kernel: stub ids 29/30 (empty region after alias) |
 | 8 | `VammManager::InitializeIfEnabled` abort | `svcGetInfo` 33 unknown; it's a page granule (module ranges are checked against `value-1`; VAMM maps one granule first) | return 0x1000 |
 | 9 | `nn::am::InitializeApplicationInterfaces` | `appletOE` cmd 10 (Switch 2 OpenApplicationProxy) | alias to cmd 0 |
@@ -96,7 +96,7 @@ With the patched decoder, games 1/3/4 only leave ~60-110 rare SIMD encodings in 
 | 38 | game waits for service `aud:u` | Switch 2 audio entry (`nn::audio::CreateUserClientSessionByHipc`); cmd 2 returns an IAudioRendererManager | `INx2AudioUserClient` backed by Eden's audren (2e6c39c) |
 | 39 | every audio `RequestUpdate` fails | updates tagged `REv?` (lowercase v), renderer opened with `REV?` | compare revision numbers (2e6c39c) |
 | 40 | main thread parked in `ExecuteVirtualMachineMapBufferEx` | gpu sub 211's job slot is request word 17, not word 2 | signal word 17's event (2e6c39c) |
-| 41 | "too many files open" reading RomFS | eden-cli never raised the CRT stdio limit | `_setmaxstdio(8192)` (2e6c39c) |
+| 41 | "too many files open" reading RomFS | lichii-cli never raised the CRT stdio limit | `_setmaxstdio(8192)` (2e6c39c) |
 | 42 | GPU memory model | gpu sub 101 = `CreateGpuAccessibleMemory` (reply word 3 = GpuMemoryHandle); 211 = `NormalMapGpuMemory4K` (words 3-4 first VA, 5-6 last, 7 handle, 8-9 offset, 17 slot), also into sparse regions at 0x81_xxxx_xxxx; 102/213 (`NormalUnmapGpuMemory4K`)/214 (`CreateSparseRegion`) complete through slot events (words 3/8/11) | real handles, `Nx2GpuMemoryRegistry::MapAt` with SMMU range reuse, slot signals |
 | 43 | (title 1) `nn::syncpt::sdk::Initialize` abort | newer SDK opens syncpt with TIPC 0(u64 token) and aborts unless it is echoed | handshake echo |
 | 44 | (title 1) NVN closes the GPU device after GetVARegions | newer SDK asks gpu 201/202(id) for the user/gsv partitions (two u64s each, stored as min/max) instead of using 203 | 201 = [0x8000000, 0xC000000000), 202 empty |
@@ -191,7 +191,7 @@ With the patched decoder, games 1/3/4 only leave ~60-110 rare SIMD encodings in 
 | 127 | main core: ~23% of its samples read CNTPCT (~17 million reads a second) | the game polls the counter while it waits for the GPU; a spinning thread slows its SMT sibling (8-core/16-thread Ryzen) | PAUSE between counter reads less than ~1.7 us apart (8abeb0b, `EDEN_NX2_CNTPCT_PAUSE=0` off); effect not separable from run-to-run noise |
 | 128 | Vulkan worker woken with a system call every 8 draws (~2% of the GPU thread) | DispatchWork notified even when the worker was busy | every 32 draws, notify only a waiting worker (d9d7e94) |
 | 129 | macro memo arena (16 MiB) cleared every ~2 s | records stored again with another shape left their old copies | compaction (9a37142); live records are ~12 MiB, so most compactions still end in a clear; hits stay ~97% (46% on the last call's slot) |
-| 130 | measurements | a stuck `nvidia-smi -l` loop had spun one core for 12 h (every run since the evening of 10-28 had one core less); the attract loop shows different courses each run (frame means vary +-15%); stopped test loops kept running and overlapped | compare per-call costs (`C:\dev\nx2work\zones.py` on `EDEN_NX2_GPU_PROFILE` logs); `ab_env.sh` and `hangcheck.sh` refuse to start while eden-cli runs; `stopall.ps1` stops every loop |
+| 130 | measurements | a stuck `nvidia-smi -l` loop had spun one core for 12 h (every run since the evening of 10-28 had one core less); the attract loop shows different courses each run (frame means vary +-15%); stopped test loops kept running and overlapped | compare per-call costs (`C:\dev\nx2work\zones.py` on `EDEN_NX2_GPU_PROFILE` logs); `ab_env.sh` and `hangcheck.sh` refuse to start while lichii-cli runs; `stopall.ps1` stops every loop |
 | 131 | (title 1) 250-330 MB/s of buffer data copied back at fences (13,000-20,000 ranges a second) | Eden downloads every GPU-written range at the next fence. Measured: the native MME's DMA reads never touched those pages (`EDEN_NX2_GPU_PROFILE` counter), and with reactive flushing the guest CPU read GPU-written memory at most 64 times in 200 s | off for Switch 2 titles (d530bc4, `EDEN_NX2_BUFFER_DOWNLOADS=0/1` forces): fences ~1.1 us (were ~5), draw setup -7%, cache-lock spinning 1.8% |
 | 132 | inline uploads 10.5% of the GPU thread | IsRegionGpuModified visited every GPU-written range in the query (they stay fragmented without downloads); std::hash of integers and pointers is FNV-1a on MSVC in every Common::unordered_map | RangeSet::Intersects (one lookup) and a pass-through hash for integer/pointer keys (0fe581f): 7.5% |
 | 133 | some courses (desert/canyon, dense city, highway) run 30-45 ms with presents blocked 9-15 ms on the previous frame's fence (also before today: t14) | not the host GPU (nvidia-smi: 20-40% busy, ~22 W) but the GPU thread: ~100% busy there, its command processing 370-420 ms/s instead of 300-350 (more commands per frame). The 8 GB laptop GPU is also near its budget (6.6-6.9 of 7.1 GB): the texture collector evicts hundreds of decoded ASTC images per 600 frames, the buffer collector GPU-written buffers every frame | `EDEN_NX2_TC_MIN_AGE=120` (0f0fbb9) made no difference over three runs; buffer evictions batched into one GPU wait (db4c539), still ~2.7% on those courses (open: asynchronous eviction) |
@@ -230,7 +230,7 @@ faulting stack as module+offset, then a minidump), `EDEN_NX2_AUTO_STUB`, `EDEN_N
 `EDEN_NX2_READ_TRAPS=0` (row 150),
 `EDEN_NX2_FRAME_CAPTURE=<dir>` (every 120th presented frame as TGA), `EDEN_NX2_PB_CHECK`
 (pushbuffer entries changed between submit and execution), `EDEN_NX2_QUERY_TRACE` (every GPU
-report/semaphore write). `C:\dev\crashrun.sh` runs eden-cli under cdb and prints the crash stack;
+report/semaphore write). `C:\dev\crashrun.sh` runs lichii-cli under cdb and prints the crash stack;
 `C:\dev\stackdump.sh <main> <seconds>` dumps host thread stacks of a running test.
 
 ## Where it stops now
@@ -256,7 +256,7 @@ the same open problems as below.
 loading screen and reaches its title screen ("Press L + R to start") with sky, buildings, props,
 kart and logo drawn. Wrong: magenta/cyan colour cast, black ground (unbacked virtual texture, row
 87), task/mesh geometry missing (row 89), ~10-17 fps. Launch with frame capture:
-`EDEN_NX2_FRAME_CAPTURE=C:/dev/frames_t1x EDEN_NX2_AUTO_STUB=1 EDEN_NX2_SHADER_DUMP=C:/dev/shaders_title1 ./eden-cli.exe -g "C:/switch/first switch game/exefs/main"`.
+`EDEN_NX2_FRAME_CAPTURE=C:/dev/frames_t1x EDEN_NX2_AUTO_STUB=1 EDEN_NX2_SHADER_DUMP=C:/dev/shaders_title1 ./lichii-cli.exe -g "C:/switch/first switch game/exefs/main"`.
 Offline shader check: `nx2work/lowertest/lowertest.exe C:/dev/shaders_title1 [-all [op]]`.
 
 **Title 2**: main/sdk/subsdk0 fail LZ4 and SHA-256 checks; can't be run from these files.
@@ -272,6 +272,6 @@ Offline shader check: `nx2work/lowertest/lowertest.exe C:/dev/shaders_title1 [-a
    gsv 214 (GPU-only memory) and vi2 present buffer availability (real buffer release instead of
    the fence wait), gsv 1510 formats, svcGetInfo 29-33.
 4. **Six cores** instead of folding 4/5 onto 0/1; rare SIMD encodings still undecoded.
-5. Upstream-worthy pieces independent of Switch 2: MSVC 14.51 build fixes, eden-cli SDL3
+5. Upstream-worthy pieces independent of Switch 2: MSVC 14.51 build fixes, lichii-cli SDL3
    lifetime fixes and `_setmaxstdio`, ExeFS loader fixes, FAC/FAH offset fix, GetPseudoDeviceId
    without NACP.

@@ -364,7 +364,7 @@ NupContainer::NupContainer(VirtualFile file_, std::size_t memory_cache_cap,
     : file(std::move(file_)), cache(std::make_shared<NupDecompressCache>()) {
     cache->cap = memory_cache_cap;
     cache->spill_dir = spill_dir_.empty()
-                           ? Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "nup"
+                           ? Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "nup"
                            : std::move(spill_dir_);
     if (file == nullptr) {
         return;

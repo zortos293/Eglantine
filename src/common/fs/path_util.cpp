@@ -62,10 +62,10 @@ namespace fs = std::filesystem;
 
 /**
  * The PathManagerImpl is a singleton allowing to manage the mapping of
- * EdenPath enums to real filesystem paths.
- * This class provides 2 functions: GetEdenPathImpl and SetEdenPathImpl.
- * These are used by GetEdenPath and SetEdenPath respectively to get or modify
- * the path mapped by the EdenPath enum.
+ * LichiiPath enums to real filesystem paths.
+ * This class provides 2 functions: GetLichiiPathImpl and SetLichiiPathImpl.
+ * These are used by GetLichiiPath and SetLichiiPath respectively to get or modify
+ * the path mapped by the LichiiPath enum.
  */
 class PathManagerImpl {
 public:
@@ -81,22 +81,22 @@ public:
     PathManagerImpl(PathManagerImpl&&) = delete;
     PathManagerImpl& operator=(PathManagerImpl&&) = delete;
 
-    [[nodiscard]] const fs::path& GetEdenPathImpl(EdenPath eden_path) {
-        return eden_paths.at(eden_path);
+    [[nodiscard]] const fs::path& GetLichiiPathImpl(LichiiPath lichii_path) {
+        return lichii_paths.at(lichii_path);
     }
 
     [[nodiscard]] const fs::path& GetLegacyPathImpl(EmuPath legacy_path) {
         return legacy_paths.at(legacy_path);
     }
 
-    void CreateEdenPaths() {
-        std::for_each(eden_paths.begin(), eden_paths.end(), [](auto &path) {
+    void CreateLichiiPaths() {
+        std::for_each(lichii_paths.begin(), lichii_paths.end(), [](auto &path) {
             void(FS::CreateDirs(path.second));
         });
     }
 
-    void SetEdenPathImpl(EdenPath eden_path, const fs::path& new_path) {
-        eden_paths.insert_or_assign(eden_path, new_path);
+    void SetLichiiPathImpl(LichiiPath lichii_path, const fs::path& new_path) {
+        lichii_paths.insert_or_assign(lichii_path, new_path);
     }
 
     void SetLegacyPathImpl(EmuPath legacy_path, const fs::path& new_path) {
@@ -108,17 +108,17 @@ public:
     /// over the global configuration directory (in other words, portable directories
     /// take priority over the global ones, always)
     /// On Android, the behaviour is to look for the current directory only.
-    void Reinitialize(fs::path eden_path = {}) {
-        fs::path eden_path_cache;
-        fs::path eden_path_config;
+    void Reinitialize(fs::path lichii_path = {}) {
+        fs::path lichii_path_cache;
+        fs::path lichii_path_config;
 #ifdef _WIN32
         // User directory takes priority over global %AppData% directory
-        eden_path = GetExeDirectory() / PORTABLE_DIR;
-        if (!Exists(eden_path) || !IsDir(eden_path)) {
-            eden_path = GetAppDataRoamingDirectory() / EDEN_DIR;
+        lichii_path = GetExeDirectory() / PORTABLE_DIR;
+        if (!Exists(lichii_path) || !IsDir(lichii_path)) {
+            lichii_path = GetAppDataRoamingDirectory() / LICHII_DIR;
         }
-        eden_path_cache = eden_path / CACHE_DIR;
-        eden_path_config = eden_path / CONFIG_DIR;
+        lichii_path_cache = lichii_path / CACHE_DIR;
+        lichii_path_config = lichii_path / CONFIG_DIR;
 #define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetAppDataRoamingDirectory() / upperName##_DIR); \
         GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetAppDataRoamingDirectory() / upperName##_DIR / CONFIG_DIR); \
         GenerateLegacyPath(EmuPath::titleName##CacheDir, GetAppDataRoamingDirectory() / upperName##_DIR / CACHE_DIR);
@@ -128,18 +128,18 @@ public:
         LEGACY_PATH(Suyu, SUYU)
 #undef LEGACY_PATH
 #elif __ANDROID__
-        ASSERT(!eden_path.empty());
-        eden_path_cache = eden_path / CACHE_DIR;
-        eden_path_config = eden_path / CONFIG_DIR;
+        ASSERT(!lichii_path.empty());
+        lichii_path_cache = lichii_path / CACHE_DIR;
+        lichii_path_config = lichii_path / CONFIG_DIR;
 #else
-        eden_path = GetCurrentDir() / PORTABLE_DIR;
-        if (!Exists(eden_path) || !IsDir(eden_path)) {
-            eden_path = GetDataDirectory("XDG_DATA_HOME") / EDEN_DIR;
-            eden_path_cache = GetDataDirectory("XDG_CACHE_HOME") / EDEN_DIR;
-            eden_path_config = GetDataDirectory("XDG_CONFIG_HOME") / EDEN_DIR;
+        lichii_path = GetCurrentDir() / PORTABLE_DIR;
+        if (!Exists(lichii_path) || !IsDir(lichii_path)) {
+            lichii_path = GetDataDirectory("XDG_DATA_HOME") / LICHII_DIR;
+            lichii_path_cache = GetDataDirectory("XDG_CACHE_HOME") / LICHII_DIR;
+            lichii_path_config = GetDataDirectory("XDG_CONFIG_HOME") / LICHII_DIR;
         } else {
-            eden_path_cache = eden_path / CACHE_DIR;
-            eden_path_config = eden_path / CONFIG_DIR;
+            lichii_path_cache = lichii_path / CACHE_DIR;
+            lichii_path_config = lichii_path / CONFIG_DIR;
         }
 #define LEGACY_PATH(titleName, upperName) GenerateLegacyPath(EmuPath::titleName##Dir, GetDataDirectory("XDG_DATA_HOME") / upperName##_DIR); \
         GenerateLegacyPath(EmuPath::titleName##ConfigDir, GetDataDirectory("XDG_CONFIG_HOME") / upperName##_DIR); \
@@ -151,29 +151,29 @@ public:
 #undef LEGACY_PATH
 #endif
         // data
-        GenerateEdenPath(EdenPath::EdenDir, eden_path);
-        GenerateEdenPath(EdenPath::AmiiboDir, eden_path / AMIIBO_DIR);
-        GenerateEdenPath(EdenPath::CrashDumpsDir, eden_path / CRASH_DUMPS_DIR);
-        GenerateEdenPath(EdenPath::DumpDir, eden_path / DUMP_DIR);
-        GenerateEdenPath(EdenPath::KeysDir, eden_path / KEYS_DIR);
-        GenerateEdenPath(EdenPath::LoadDir, eden_path / LOAD_DIR);
-        GenerateEdenPath(EdenPath::LogDir, eden_path / LOG_DIR);
-        GenerateEdenPath(EdenPath::LosslessDir, eden_path / LOSSLESS_DIR);
-        GenerateEdenPath(EdenPath::NANDDir, eden_path / NAND_DIR);
-        GenerateEdenPath(EdenPath::PlayTimeDir, eden_path / PLAY_TIME_DIR);
-        GenerateEdenPath(EdenPath::PostPresetDir, eden_path / POST_PRESET_DIR);
-        GenerateEdenPath(EdenPath::PostShaderDir, eden_path / POST_SHADER_DIR);
-        GenerateEdenPath(EdenPath::SaveDir, eden_path / NAND_DIR);
-        GenerateEdenPath(EdenPath::ScreenshotsDir, eden_path / SCREENSHOTS_DIR);
-        GenerateEdenPath(EdenPath::SDMCDir, eden_path / SDMC_DIR);
-        GenerateEdenPath(EdenPath::TASDir, eden_path / TAS_DIR);
-        GenerateEdenPath(EdenPath::IconsDir, eden_path / ICONS_DIR);
-        GenerateEdenPath(EdenPath::StreamlineDir, eden_path / STREAMLINE_DIR);
+        GenerateLichiiPath(LichiiPath::LichiiDir, lichii_path);
+        GenerateLichiiPath(LichiiPath::AmiiboDir, lichii_path / AMIIBO_DIR);
+        GenerateLichiiPath(LichiiPath::CrashDumpsDir, lichii_path / CRASH_DUMPS_DIR);
+        GenerateLichiiPath(LichiiPath::DumpDir, lichii_path / DUMP_DIR);
+        GenerateLichiiPath(LichiiPath::KeysDir, lichii_path / KEYS_DIR);
+        GenerateLichiiPath(LichiiPath::LoadDir, lichii_path / LOAD_DIR);
+        GenerateLichiiPath(LichiiPath::LogDir, lichii_path / LOG_DIR);
+        GenerateLichiiPath(LichiiPath::LosslessDir, lichii_path / LOSSLESS_DIR);
+        GenerateLichiiPath(LichiiPath::NANDDir, lichii_path / NAND_DIR);
+        GenerateLichiiPath(LichiiPath::PlayTimeDir, lichii_path / PLAY_TIME_DIR);
+        GenerateLichiiPath(LichiiPath::PostPresetDir, lichii_path / POST_PRESET_DIR);
+        GenerateLichiiPath(LichiiPath::PostShaderDir, lichii_path / POST_SHADER_DIR);
+        GenerateLichiiPath(LichiiPath::SaveDir, lichii_path / NAND_DIR);
+        GenerateLichiiPath(LichiiPath::ScreenshotsDir, lichii_path / SCREENSHOTS_DIR);
+        GenerateLichiiPath(LichiiPath::SDMCDir, lichii_path / SDMC_DIR);
+        GenerateLichiiPath(LichiiPath::TASDir, lichii_path / TAS_DIR);
+        GenerateLichiiPath(LichiiPath::IconsDir, lichii_path / ICONS_DIR);
+        GenerateLichiiPath(LichiiPath::StreamlineDir, lichii_path / STREAMLINE_DIR);
         // config
-        GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
+        GenerateLichiiPath(LichiiPath::ConfigDir, lichii_path_config);
         // cache
-        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
-        GenerateEdenPath(EdenPath::ShaderDir, eden_path_cache / SHADER_DIR);
+        GenerateLichiiPath(LichiiPath::CacheDir, lichii_path_cache);
+        GenerateLichiiPath(LichiiPath::ShaderDir, lichii_path_cache / SHADER_DIR);
 #ifdef _WIN32
         GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
 #else
@@ -191,16 +191,16 @@ private:
 
     ~PathManagerImpl() = default;
 
-    void GenerateEdenPath(EdenPath eden_path, const fs::path& new_path) {
+    void GenerateLichiiPath(LichiiPath lichii_path, const fs::path& new_path) {
         // Defer path creation
-        SetEdenPathImpl(eden_path, new_path);
+        SetLichiiPathImpl(lichii_path, new_path);
     }
 
     void GenerateLegacyPath(EmuPath legacy_path, const fs::path& new_path) {
         SetLegacyPathImpl(legacy_path, new_path);
     }
 
-    ::Common::unordered_map<EdenPath, fs::path> eden_paths;
+    ::Common::unordered_map<LichiiPath, fs::path> lichii_paths;
     ::Common::unordered_map<EmuPath, fs::path> legacy_paths;
 };
 
@@ -285,33 +285,33 @@ void SetAppDirectory(const std::string& app_directory) {
     PathManagerImpl::GetInstance().Reinitialize(app_directory);
 }
 
-const fs::path& GetEdenPath(EdenPath eden_path) {
-    return PathManagerImpl::GetInstance().GetEdenPathImpl(eden_path);
+const fs::path& GetLichiiPath(LichiiPath lichii_path) {
+    return PathManagerImpl::GetInstance().GetLichiiPathImpl(lichii_path);
 }
 
 const std::filesystem::path& GetLegacyPath(EmuPath legacy_path) {
     return PathManagerImpl::GetInstance().GetLegacyPathImpl(legacy_path);
 }
 
-std::string GetEdenPathString(EdenPath eden_path) {
-    return PathToUTF8String(GetEdenPath(eden_path));
+std::string GetLichiiPathString(LichiiPath lichii_path) {
+    return PathToUTF8String(GetLichiiPath(lichii_path));
 }
 
 std::string GetLegacyPathString(EmuPath legacy_path) {
     return PathToUTF8String(GetLegacyPath(legacy_path));
 }
 
-void SetEdenPath(EdenPath eden_path, const fs::path& new_path) {
+void SetLichiiPath(LichiiPath lichii_path, const fs::path& new_path) {
     auto& instance = PathManagerImpl::GetInstance();
     if (FS::IsDir(new_path)) {
-        instance.SetEdenPathImpl(eden_path, new_path);
+        instance.SetLichiiPathImpl(lichii_path, new_path);
     } else {
         LOG_ERROR(Common_Filesystem, "Filesystem object at new_path={} is not a directory", PathToUTF8String(new_path));
     }
 }
 
-void CreateEdenPaths() {
-    PathManagerImpl::GetInstance().CreateEdenPaths();
+void CreateLichiiPaths() {
+    PathManagerImpl::GetInstance().CreateLichiiPaths();
 }
 
 #ifdef _WIN32

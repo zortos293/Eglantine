@@ -38,7 +38,7 @@ namespace {
 
 QString GetImagePath(const Common::UUID& uuid) {
     const auto path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
     return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }
@@ -197,7 +197,7 @@ void ConfigureProfileManager::saveImage(QPixmap pixmap, Common::UUID uuid) {
     }
 
     const auto raw_path = QString::fromStdString(Common::FS::PathToUTF8String(
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "system/save/8000000000000010"));
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) / "system/save/8000000000000010"));
     const QFileInfo raw_info{raw_path};
     if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
         QMessageBox::warning(this, tr("Error deleting file"),

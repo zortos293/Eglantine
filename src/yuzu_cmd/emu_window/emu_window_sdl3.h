@@ -53,7 +53,7 @@ public:
     /// Wait for the next event on the main thread.
     void OnEvent(SDL_Event& event);
 
-    // Sets the window icon from yuzu.bmp
+    // Sets the window icon from lichii.bmp
     void SetWindowIcon();
 
 protected:

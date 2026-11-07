@@ -15,13 +15,13 @@ public:
         if (!std::filesystem::create_directory(directory)) {
             throw std::runtime_error("Cannot create isolated System test directory");
         }
-        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, directory);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::NANDDir, directory);
         Settings::values.memory_layout_mode.SetValue(Settings::MemoryLayout::Memory_4Gb);
         Settings::values.use_multi_core.SetValue(false);
     }
 
     ~ScopedSystemTestContext() {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, previous_nand);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::NANDDir, previous_nand);
         Settings::values.current_user = previous_user;
         Settings::values.memory_layout_mode.SetValue(previous_memory);
         Settings::values.use_multi_core.SetValue(previous_multicore);
@@ -34,7 +34,7 @@ public:
 
 private:
     const std::filesystem::path previous_nand =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir);
     const s32 previous_user = Settings::values.current_user.GetValue();
     const Settings::MemoryLayout previous_memory = Settings::values.memory_layout_mode.GetValue();
     const bool previous_multicore = Settings::values.use_multi_core.GetValue();

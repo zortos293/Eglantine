@@ -55,17 +55,17 @@ void ConfigureFilesystem::changeEvent(QEvent* event) {
 
 void ConfigureFilesystem::SetConfiguration() {
     ui->nand_directory_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::NANDDir)));
     ui->sdmc_directory_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SDMCDir)));
     ui->save_directory_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SaveDir)));
     ui->gamecard_path_edit->setText(
         QString::fromStdString(Settings::values.gamecard_path.GetValue()));
     ui->dump_path_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::DumpDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::DumpDir)));
     ui->load_path_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::LoadDir)));
 
     ui->gamecard_inserted->setChecked(Settings::values.gamecard_inserted.GetValue());
     ui->gamecard_current_game->setChecked(Settings::values.gamecard_current_game.GetValue());
@@ -78,15 +78,15 @@ void ConfigureFilesystem::SetConfiguration() {
 }
 
 void ConfigureFilesystem::ApplyConfiguration() {
-    Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir,
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::NANDDir,
                             ui->nand_directory_edit->text().toStdString());
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir,
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::SDMCDir,
                             ui->sdmc_directory_edit->text().toStdString());
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir,
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::SaveDir,
                             ui->save_directory_edit->text().toStdString());
-    Common::FS::SetEdenPath(Common::FS::EdenPath::DumpDir,
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::DumpDir,
                             ui->dump_path_edit->text().toStdString());
-    Common::FS::SetEdenPath(Common::FS::EdenPath::LoadDir,
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::LoadDir,
                             ui->load_path_edit->text().toStdString());
 
     Settings::values.gamecard_inserted = ui->gamecard_inserted->isChecked();

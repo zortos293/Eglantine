@@ -34,7 +34,7 @@ However, this process can be tedious for those unfamiliar; this document serves 
 
 ## Adding Boolean Settings Toggles
 
-This guide will walk you through adding a new boolean toggle setting to Eden's configuration across both Qt's (PC) and Kotlin's (Android) UIs.
+This guide will walk you through adding a new boolean toggle setting to Lichii's configuration across both Qt's (PC) and Kotlin's (Android) UIs.
 
 ---
 
@@ -183,7 +183,7 @@ Thank you for reading, I hope this guide helped you making your toggle!
 
 ## Adding Debug Knobs
 
-Debug Knobs is a 16-bit integer setting (`debug_knobs`) in the Eden Emulator that serves as a bitmask for gating various testing and debugging features. This allows developers and advanced users to enable or disable specific debug behaviors without requiring deploying of complete but temporary toggles.
+Debug Knobs is a 16-bit integer setting (`debug_knobs`) in Lichii that serves as a bitmask for gating various testing and debugging features. This allows developers and advanced users to enable or disable specific debug behaviors without requiring deploying of complete but temporary toggles.
 
 The setting ranges from 0 to 65535 (0x0000 to 0xFFFF), where each bit represents a different debug feature flag.
 

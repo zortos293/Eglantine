@@ -1,6 +1,6 @@
 # Tools
 
-Tools for Eden and other subprojects. When adding new scripts please use `#!/bin/sh -e` or `#!/usr/bin/env <interpreter>` (for `.py`, `.rb`, or `.perl`). Keep scripts POSIX compliant (i.e not require hard `bash` to run, just plain old `sh`).
+Tools for Lichii and other subprojects. When adding new scripts please use `#!/bin/sh -e` or `#!/usr/bin/env <interpreter>` (for `.py`, `.rb`, or `.perl`). Keep scripts POSIX compliant (i.e not require hard `bash` to run, just plain old `sh`).
 
 ## Third-Party
 
@@ -17,10 +17,10 @@ Tools for Eden and other subprojects. When adding new scripts please use `#!/bin
 - `generate_converters.py`: Generates converters for given formats of textures (C++ helper).
 - `svc_generator.py`: Generates the files `src/core/hle/kernel/svc.cpp` and `src/core/hle/kernel/svc.h` based off prototypes.
 - `shellcheck.sh`: Ensure POSIX compliance (and syntax sanity) for all tools in this directory and subdirectories.
-- `llvmpipe-run.sh`: Sets environment variables needed to run any command (or Eden) with llvmpipe.
+- `llvmpipe-run.sh`: Sets environment variables needed to run any command (or Lichii) with llvmpipe.
 - `optimize-assets.sh`: Optimizes PNG assets with OptiPng.
 - `update-cpm.sh`: Updates CPM.cmake to the latest version.
-- `update-icons.sh`: Rebuild all icons (macOS, Windows, bitmaps) based on the master SVG file (`dist/dev.eden_emu.eden.svg`)
+- `update-icons.sh`: Rebuild all icons (macOS, Windows, bitmaps) based on the master SVG file (`dist/lichii.svg`)
     * Also optimizes the master SVG
     * Requires: `png2icns` (libicns), ImageMagick, [`svgo`](https://github.com/svg/svgo)
 - `dtrace-tool.sh`

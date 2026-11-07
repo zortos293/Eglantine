@@ -812,7 +812,7 @@ struct Values {
                                     linkage, 0,    "rng_seed",       Category::System, Specialization::Hex,
                                     true,    true, &rng_seed_enabled};
     Setting<std::string> device_name{
-        linkage, "Eden", "device_name", Category::System, Specialization::Default, true, true};
+        linkage, "Lichii", "device_name", Category::System, Specialization::Default, true, true};
 
     Setting<s32> current_user{linkage, 0, "current_user", Category::System};
 
@@ -989,9 +989,9 @@ struct Values {
     // WebService
     Setting<std::string> web_api_url{linkage, "api.ynet-fun.xyz", "web_api_url",
                                      Category::WebService};
-    Setting<std::string> eden_username{linkage, "Eden", "eden_username",
+    Setting<std::string> lichii_username{linkage, "Lichii", "eden_username",
                                        Category::WebService};
-    Setting<std::string> eden_token{linkage, "",
+    Setting<std::string> lichii_token{linkage, "",
                                     "eden_token", Category::WebService};
 
     // Add-Ons

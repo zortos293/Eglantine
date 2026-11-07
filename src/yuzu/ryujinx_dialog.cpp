@@ -7,9 +7,9 @@
 #include "ryujinx_dialog.h"
 #include "ui_ryujinx_dialog.h"
 
-RyujinxDialog::RyujinxDialog(std::filesystem::path eden_path, std::filesystem::path ryu_path,
+RyujinxDialog::RyujinxDialog(std::filesystem::path lichii_path, std::filesystem::path ryu_path,
                              QWidget* parent)
-    : QDialog(parent), ui(new Ui::RyujinxDialog), m_eden(eden_path.make_preferred()),
+    : QDialog(parent), ui(new Ui::RyujinxDialog), m_eden(lichii_path.make_preferred()),
       m_ryu(ryu_path.make_preferred()) {
     ui->setupUi(this);
 

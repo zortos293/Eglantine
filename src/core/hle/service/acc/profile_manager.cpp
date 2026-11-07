@@ -55,7 +55,7 @@ ProfileManager::ProfileManager() {
 
     // Create an user if none are present
     if (user_count == 0) {
-        CreateNewUser(UUID::MakeRandom(), "Eden");
+        CreateNewUser(UUID::MakeRandom(), "Lichii");
         WriteUserSaveFile();
     }
 
@@ -394,21 +394,21 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
 }
 
 void ProfileManager::ParseUserSaveFile() {
-    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetLichiiPath(FS::LichiiPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
 
     const FS::IOFile save(save_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
-                                 "user 'Eden' with random UUID.");
+                                 "user 'Lichii' with random UUID.");
         return;
     }
 
     ProfileDataRaw data;
     if (!save.ReadObject(data)) {
         LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
-                                 "'Eden' with random UUID.");
+                                 "'Lichii' with random UUID.");
         return;
     }
 
@@ -447,12 +447,12 @@ void ProfileManager::WriteUserSaveFile() {
         };
     }
 
-    const auto raw_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / "system/save/8000000000000010");
+    const auto raw_path(FS::GetLichiiPath(FS::LichiiPath::NANDDir) / "system/save/8000000000000010");
     if (FS::IsFile(raw_path) && !FS::RemoveFile(raw_path)) {
         return;
     }
 
-    const auto save_path(FS::GetEdenPath(FS::EdenPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+    const auto save_path(FS::GetLichiiPath(FS::LichiiPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
                          "profiles.dat");
 
     if (FS::IsFile(save_path) && !FS::RemoveFile(save_path)) {
@@ -519,7 +519,7 @@ std::vector<std::string> ProfileManager::FindGoodProfiles()
 
     std::vector<std::string> good_uuids;
 
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+    const auto path = Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir)
                       / "user/save/0000000000000000";
 
     // some exceptions, e.g. the "system" profile
@@ -544,7 +544,7 @@ std::vector<std::string> ProfileManager::FindOrphanedProfiles()
     namespace fs = std::filesystem;
 
     // TODO: fetch save_id programmatically
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir)
+    const auto path = Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir)
                       / "user/save/0000000000000000";
 
     std::vector<std::string> orphaned_profiles;

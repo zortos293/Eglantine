@@ -14,6 +14,6 @@ const std::filesystem::path GetRyujinxSavePath(const std::filesystem::path& path
                                                const u64& program_id);
 
 /// returns FALSE if the dirs are NOT linked
-bool CheckUnlink(const std::filesystem::path& eden_dir, const std::filesystem::path& ryu_dir);
+bool CheckUnlink(const std::filesystem::path& lichii_dir, const std::filesystem::path& ryu_dir);
 
 } // namespace QtCommon::FS

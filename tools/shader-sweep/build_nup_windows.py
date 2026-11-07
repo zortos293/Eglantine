@@ -31,12 +31,12 @@ def main():
     libraries = None
     lines = (build / "build.ninja").read_text(encoding="utf-8").splitlines()
     for index, line in enumerate(lines):
-        if line.startswith("build bin/eden-cli.exe:"):
+        if line.startswith("build bin/lichii-cli.exe:"):
             libraries = next(line.split(" = ", 1)[1] for line in lines[index + 1:]
                              if line.startswith("  LINK_LIBRARIES = ")).split()
             break
     if libraries is None:
-        raise RuntimeError("configured eden-cli link dependencies were not found")
+        raise RuntimeError("configured lichii-cli link dependencies were not found")
     libraries = [str(build / library) if "/" in library and not Path(library).is_absolute()
                  else library for library in libraries]
     work.mkdir(parents=True, exist_ok=True)

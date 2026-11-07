@@ -12,10 +12,10 @@ use POSIX qw(strftime);
 my $input;
 my $sampling_hz = '997';
 my $sampling_time = '60';
-my $sampling_pid = `pgrep eden`;
+my $sampling_pid = `pgrep lichii`;
 chomp($sampling_pid);
 
-my $sampling_program = 'eden';
+my $sampling_program = 'lichii';
 my $sampling_type = 0;
 
 sub dtrace_ask_params {

@@ -11,7 +11,7 @@ namespace GraphicsBackend {
 
 QString GuiConfigPath() {
     return QString::fromStdString(
-        FS::PathToUTF8String(FS::GetEdenPath(FS::EdenPath::ConfigDir) / "gui_config.ini"));
+        FS::PathToUTF8String(FS::GetLichiiPath(FS::LichiiPath::ConfigDir) / "gui_config.ini"));
 }
 
 void SetForceX11(bool state) {

@@ -46,11 +46,11 @@ constexpr size_t DynamicRoutineSize = 120;
 constexpr u32 DynamicCallInstruction = 0x94D57D4F;
 constexpr u32 DynamicOriginalInstruction = 0x1E201828;
 
-constexpr std::array<std::pair<Common::FS::EdenPath, const char*>, 4> TestDirectories{{
-    {Common::FS::EdenPath::NANDDir, "nand"},
-    {Common::FS::EdenPath::SDMCDir, "sdmc"},
-    {Common::FS::EdenPath::LoadDir, "load"},
-    {Common::FS::EdenPath::DumpDir, "dump"},
+constexpr std::array<std::pair<Common::FS::LichiiPath, const char*>, 4> TestDirectories{{
+    {Common::FS::LichiiPath::NANDDir, "nand"},
+    {Common::FS::LichiiPath::SDMCDir, "sdmc"},
+    {Common::FS::LichiiPath::LoadDir, "load"},
+    {Common::FS::LichiiPath::DumpDir, "dump"},
 }};
 
 void WriteIps(const std::filesystem::path& path, u32 word, size_t offset = PatchOffset) {
@@ -82,9 +82,9 @@ public:
                                      size_t user_mod_offset = PatchOffset) {
         for (size_t i = 0; i < TestDirectories.size(); ++i) {
             const auto& [path, name] = TestDirectories[i];
-            previous[i] = Common::FS::GetEdenPath(path);
+            previous[i] = Common::FS::GetLichiiPath(path);
             std::filesystem::create_directories(root / name);
-            Common::FS::SetEdenPath(path, root / name);
+            Common::FS::SetLichiiPath(path, root / name);
         }
         const auto title_dir = root / "load" / fmt::format("{:016X}", OcarinaTitleId);
         std::filesystem::create_directories(title_dir);
@@ -101,7 +101,7 @@ public:
 
     ~PatchManagerTestContext() {
         for (size_t i = 0; i < TestDirectories.size(); ++i) {
-            Common::FS::SetEdenPath(TestDirectories[i].first, previous[i]);
+            Common::FS::SetLichiiPath(TestDirectories[i].first, previous[i]);
         }
         Settings::values.disabled_addons.erase(OcarinaTitleId);
         std::error_code error;

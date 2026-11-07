@@ -29,7 +29,7 @@ Config::Config(const ConfigType config_type)
     : type(config_type), global{config_type == ConfigType::GlobalConfig} {}
 
 void Config::Initialize(const std::string& config_name) {
-    const std::filesystem::path fs_config_loc = FS::GetEdenPath(FS::EdenPath::ConfigDir);
+    const std::filesystem::path fs_config_loc = FS::GetLichiiPath(FS::LichiiPath::ConfigDir);
     const auto config_file = fmt::format("{}.ini", config_name);
 
     switch (type) {
@@ -55,7 +55,7 @@ void Config::Initialize(const std::string& config_name) {
 
 void Config::Initialize(const std::optional<std::string> config_path) {
     const std::filesystem::path default_sdl_config_path =
-        FS::GetEdenPath(FS::EdenPath::ConfigDir) / "sdl2-config.ini";
+        FS::GetLichiiPath(FS::LichiiPath::ConfigDir) / "sdl2-config.ini";
     config_loc = config_path.value_or(FS::PathToUTF8String(default_sdl_config_path));
     void(FS::CreateParentDir(config_loc));
     SetUpIni();
@@ -300,21 +300,21 @@ void Config::ReadDataStorageValues() {
 
     using namespace Common::FS;
 
-    const auto setPath = [this](const EdenPath& path, const char* setting) {
-        SetEdenPath(path, ReadStringSetting(std::string(setting)));
+    const auto setPath = [this](const LichiiPath& path, const char* setting) {
+        SetLichiiPath(path, ReadStringSetting(std::string(setting)));
     };
 
-    setPath(EdenPath::NANDDir, "nand_directory");
-    setPath(EdenPath::SDMCDir, "sdmc_directory");
-    setPath(EdenPath::LoadDir, "load_directory");
-    setPath(EdenPath::DumpDir, "dump_directory");
-    setPath(EdenPath::TASDir, "tas_directory");
+    setPath(LichiiPath::NANDDir, "nand_directory");
+    setPath(LichiiPath::SDMCDir, "sdmc_directory");
+    setPath(LichiiPath::LoadDir, "load_directory");
+    setPath(LichiiPath::DumpDir, "dump_directory");
+    setPath(LichiiPath::TASDir, "tas_directory");
 
     const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
     if (save_dir_setting.empty()) {
-        SetEdenPath(EdenPath::SaveDir, GetEdenPathString(EdenPath::NANDDir));
+        SetLichiiPath(LichiiPath::SaveDir, GetLichiiPathString(LichiiPath::NANDDir));
     } else {
-        SetEdenPath(EdenPath::SaveDir, save_dir_setting);
+        SetLichiiPath(LichiiPath::SaveDir, save_dir_setting);
     }
 
     ReadCategory(Settings::Category::DataStorage);
@@ -404,7 +404,7 @@ void Config::ReadScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     ReadCategory(Settings::Category::Screenshots);
-    FS::SetEdenPath(FS::EdenPath::ScreenshotsDir,
+    FS::SetLichiiPath(FS::LichiiPath::ScreenshotsDir,
                     ReadStringSetting(std::string("screenshot_path")));
 
     EndGroup();
@@ -602,19 +602,19 @@ void Config::SaveDataStorageValues() {
 
     using namespace Common::FS;
 
-    const auto writePath = [this](const char* setting, const EdenPath& path) {
-        WriteStringSetting(std::string(setting), FS::GetEdenPathString(path),
-                           std::make_optional(FS::GetEdenPathString(path)));
+    const auto writePath = [this](const char* setting, const LichiiPath& path) {
+        WriteStringSetting(std::string(setting), FS::GetLichiiPathString(path),
+                           std::make_optional(FS::GetLichiiPathString(path)));
     };
 
-    writePath("nand_directory", EdenPath::NANDDir);
-    writePath("sdmc_directory", EdenPath::SDMCDir);
-    writePath("load_directory", EdenPath::LoadDir);
-    writePath("dump_directory", EdenPath::DumpDir);
-    writePath("tas_directory", EdenPath::TASDir);
+    writePath("nand_directory", LichiiPath::NANDDir);
+    writePath("sdmc_directory", LichiiPath::SDMCDir);
+    writePath("load_directory", LichiiPath::LoadDir);
+    writePath("dump_directory", LichiiPath::DumpDir);
+    writePath("tas_directory", LichiiPath::TASDir);
 
-    const auto save_path = FS::GetEdenPathString(EdenPath::SaveDir);
-    const auto nand_path = FS::GetEdenPathString(EdenPath::NANDDir);
+    const auto save_path = FS::GetLichiiPathString(LichiiPath::SaveDir);
+    const auto nand_path = FS::GetLichiiPathString(LichiiPath::NANDDir);
     if (save_path == nand_path) {
         WriteStringSetting(std::string("save_directory"), std::string(""),
                            std::make_optional(std::string("")));
@@ -709,7 +709,7 @@ void Config::SaveScreenshotValues() {
     BeginGroup(Settings::TranslateCategory(Settings::Category::Screenshots));
 
     WriteStringSetting(std::string("screenshot_path"),
-                       FS::GetEdenPathString(FS::EdenPath::ScreenshotsDir));
+                       FS::GetLichiiPathString(FS::LichiiPath::ScreenshotsDir));
     WriteCategory(Settings::Category::Screenshots);
 
     EndGroup();

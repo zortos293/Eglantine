@@ -35,7 +35,7 @@ namespace Service::Account {
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
 static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) /
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
 
@@ -1028,7 +1028,7 @@ void Module::Interface::InitializeApplicationInfoV2(HLERequestContext& ctx) {
 
 void Module::Interface::BeginUserRegistration(HLERequestContext& ctx) {
     const auto user_id = Common::UUID::MakeRandom();
-    profile_manager->CreateNewUser(user_id, "Eden");
+    profile_manager->CreateNewUser(user_id, "Lichii");
 
     LOG_INFO(Service_ACC, "called, uuid={}", user_id.FormattedString());
 

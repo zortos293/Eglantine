@@ -45,7 +45,7 @@ service once a game has loaded (`src/core/core.cpp:476`), and `ShutdownMainProce
 before anything else (`src/core/core.cpp:481`). The member is declared last
 (`src/core/core.cpp:610`), so it is also destroyed first. The tools therefore never see a
 half-built or half-destroyed system, and the server works the same under the Qt frontend and
-`eden-cli`.
+`lichii-cli`.
 
 Why not reuse the GDB stub? It speaks the GDB remote protocol and parks emulation on every stop
 (`src/core/debugger/debugger.cpp:82`). It is the right tool for guest breakpoints and stays as it
@@ -385,7 +385,7 @@ The core cannot save state. There is no serialisation of the kernel, services, t
 NCE CPU state, or the GPU caches, and Eden and yuzu never had it. The `saveState` in
 `src/yuzu/main_window.cpp` is Qt window geometry. Adding save states is a project of its own,
 not a tool. The practical substitute is a reproduction script: phase 2 input sequences, recorded
-once (`EDEN_NX2_KEY_RECORD` already records keys in `eden-cli`) and replayed after boot.
+once (`EDEN_NX2_KEY_RECORD` already records keys in `lichii-cli`) and replayed after boot.
 
 ## Running it on the PC
 

@@ -6,8 +6,8 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-_svg=dev.eden_emu.eden.svg
-_icon=dist/eden.icon
+_svg=lichii.svg
+_icon=dist/lichii.icon
 _composed="$_icon/Assets/$_svg"
 _svg="dist/$_svg"
 
@@ -18,5 +18,5 @@ xcrun actool "$_icon" \
     --compile dist \
     --platform macosx \
     --minimum-deployment-target 11.0 \
-    --app-icon eden \
+    --app-icon lichii \
     --output-partial-info-plist /dev/null

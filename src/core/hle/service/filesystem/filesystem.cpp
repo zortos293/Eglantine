@@ -383,12 +383,12 @@ std::shared_ptr<SaveDataController> FileSystemController::OpenSaveDataController
 
 std::shared_ptr<FileSys::SaveDataFactory> FileSystemController::CreateSaveDataFactory(
     ProgramId program_id) {
-    using EdenPath = Common::FS::EdenPath;
+    using LichiiPath = Common::FS::LichiiPath;
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto vfs = system.GetFilesystem();
     const auto save_directory =
-        vfs->OpenDirectory(Common::FS::GetEdenPathString(EdenPath::SaveDir), rw_mode);
+        vfs->OpenDirectory(Common::FS::GetLichiiPathString(LichiiPath::SaveDir), rw_mode);
     return std::make_shared<FileSys::SaveDataFactory>(system, program_id,
                                                       std::move(save_directory));
 }
@@ -725,20 +725,20 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
         external_provider = nullptr;
     }
 
-    using EdenPath = Common::FS::EdenPath;
-    const auto sdmc_dir_path = Common::FS::GetEdenPath(EdenPath::SDMCDir);
+    using LichiiPath = Common::FS::LichiiPath;
+    const auto sdmc_dir_path = Common::FS::GetLichiiPath(LichiiPath::SDMCDir);
     const auto sdmc_load_dir_path = sdmc_dir_path / "atmosphere/contents";
     const auto rw_mode = FileSys::OpenMode::ReadWrite;
 
     auto nand_directory =
-        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::NANDDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetLichiiPathString(LichiiPath::NANDDir), rw_mode);
     auto sd_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_dir_path), rw_mode);
-    auto load_directory = vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::LoadDir),
+    auto load_directory = vfs.OpenDirectory(Common::FS::GetLichiiPathString(LichiiPath::LoadDir),
                                             FileSys::OpenMode::Read);
     auto sd_load_directory = vfs.OpenDirectory(Common::FS::PathToUTF8String(sdmc_load_dir_path),
                                                FileSys::OpenMode::Read);
     auto dump_directory =
-        vfs.OpenDirectory(Common::FS::GetEdenPathString(EdenPath::DumpDir), rw_mode);
+        vfs.OpenDirectory(Common::FS::GetLichiiPathString(LichiiPath::DumpDir), rw_mode);
 
     if (bis_factory == nullptr) {
         bis_factory = std::make_unique<FileSys::BISFactory>(
@@ -788,7 +788,7 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
 }
 
 void FileSystemController::InitTempStorage() {
-    const auto save_directory = system.GetFilesystem()->OpenDirectory(Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir), FileSys::OpenMode::ReadWrite);
+    const auto save_directory = system.GetFilesystem()->OpenDirectory(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SaveDir), FileSys::OpenMode::ReadWrite);
     if (save_directory != nullptr) {
         save_directory->DeleteSubdirectoryRecursive("temp");
     }

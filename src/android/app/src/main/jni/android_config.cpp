@@ -93,20 +93,20 @@ void AndroidConfig::ReadPathValues() {
 
     const auto nand_dir_setting = ReadStringSetting(std::string("nand_directory"));
     if (!nand_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, nand_dir_setting);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::NANDDir, nand_dir_setting);
     }
 
     const auto sdmc_dir_setting = ReadStringSetting(std::string("sdmc_directory"));
     if (!sdmc_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, sdmc_dir_setting);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::SDMCDir, sdmc_dir_setting);
     }
 
     const auto save_dir_setting = ReadStringSetting(std::string("save_directory"));
     if (save_dir_setting.empty()) {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir,
-            Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::SaveDir,
+            Common::FS::GetLichiiPathString(Common::FS::LichiiPath::NANDDir));
     } else {
-        Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, save_dir_setting);
+        Common::FS::SetLichiiPath(Common::FS::LichiiPath::SaveDir, save_dir_setting);
     }
 
     EndGroup();
@@ -272,17 +272,17 @@ void AndroidConfig::SavePathValues() {
     EndArray();
 
     // Save custom NAND directory
-    const auto nand_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir);
+    const auto nand_path = Common::FS::GetLichiiPathString(Common::FS::LichiiPath::NANDDir);
     WriteStringSetting(std::string("nand_directory"), nand_path,
                        std::make_optional(std::string("")));
 
     // Save custom SDMC directory
-    const auto sdmc_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir);
+    const auto sdmc_path = Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SDMCDir);
     WriteStringSetting(std::string("sdmc_directory"), sdmc_path,
                        std::make_optional(std::string("")));
 
     // Save custom save directory
-    const auto save_path = Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir);
+    const auto save_path = Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SaveDir);
     if (save_path == nand_path) {
         WriteStringSetting(std::string("save_directory"), std::string(""),
                            std::make_optional(std::string("")));

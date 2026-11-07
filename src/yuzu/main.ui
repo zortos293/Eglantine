@@ -57,7 +57,7 @@
       <string>&amp;Recent Files</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuOpen_Eden_Folders">
+    <widget class="QMenu" name="menuOpen_Lichii_Folders">
      <property name="title">
       <string>Open &amp;Lichii Folders</string>
      </property>
@@ -76,7 +76,7 @@
     <addaction name="separator"/>
     <addaction name="action_Load_Amiibo"/>
     <addaction name="separator"/>
-    <addaction name="menuOpen_Eden_Folders"/>
+    <addaction name="menuOpen_Lichii_Folders"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -237,7 +237,7 @@
     <addaction name="action_Open_UserHandbook"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
-    <addaction name="action_Eden_Dependencies"/>
+    <addaction name="action_Lichii_Dependencies"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Emulation"/>
@@ -553,7 +553,7 @@
     <string>From ZIP</string>
    </property>
   </action>
-  <action name="action_Eden_Dependencies">
+  <action name="action_Lichii_Dependencies">
    <property name="text">
     <string>&amp;Lichii Dependencies</string>
    </property>

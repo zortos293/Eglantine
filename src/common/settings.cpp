@@ -119,7 +119,7 @@ void LogSettings() {
     for (auto& [category, settings] : values.linkage.by_category) {
         for (const auto& setting : settings) {
             // Hide the token secret, for security reasons.
-            if (setting->Id() != values.eden_token.Id()) {
+            if (setting->Id() != values.lichii_token.Id()) {
                 auto const is_default = setting->ToString() == setting->DefaultToString();
                 auto const name = fmt::format(
                     "{:c}{:c} {}.{}",
@@ -133,11 +133,11 @@ void LogSettings() {
             }
         }
     }
-    LOG_INFO(Config, "Eden Configuration:");
+    LOG_INFO(Config, "Lichii Configuration:");
     for (auto const& e : settings_list)
         LOG_INFO(Config, "{}", e);
 #define LOG_PATH(NAME) \
-    LOG_INFO(Config, #NAME ": {}", Common::FS::PathToUTF8String(Common::FS::GetEdenPath(Common::FS::EdenPath::NAME)))
+    LOG_INFO(Config, #NAME ": {}", Common::FS::PathToUTF8String(Common::FS::GetLichiiPath(Common::FS::LichiiPath::NAME)))
     LOG_PATH(CacheDir);
     LOG_PATH(ConfigDir);
     LOG_PATH(LoadDir);

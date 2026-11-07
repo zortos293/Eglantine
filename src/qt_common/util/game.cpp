@@ -139,7 +139,7 @@ bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_
     // Get path to Yuzu icons directory & icon extension
     std::string ico_extension = "png";
 #if defined(_WIN32)
-    out_icon_path = Common::FS::GetEdenPath(Common::FS::EdenPath::IconsDir);
+    out_icon_path = Common::FS::GetLichiiPath(Common::FS::LichiiPath::IconsDir);
     ico_extension = "ico";
 #elif !defined(__ANDROID__) // Any *nix but android
     out_icon_path = Common::FS::GetDataDirectory("XDG_DATA_HOME") / "icons/hicolor/256x256";
@@ -151,40 +151,40 @@ bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_
     }
 
     // Create icon file path
-    out_icon_path /= (program_id == 0 ? fmt::format("eden-{}.{}", game_file_name, ico_extension)
-                                      : fmt::format("eden-{:016X}.{}", program_id, ico_extension));
+    out_icon_path /= (program_id == 0 ? fmt::format("lichii-{}.{}", game_file_name, ico_extension)
+                                      : fmt::format("lichii-{:016X}.{}", program_id, ico_extension));
     return true;
 }
 
-void OpenEdenFolder(const Common::FS::EdenPath& path) {
+void OpenLichiiFolder(const Common::FS::LichiiPath& path) {
     QDesktopServices::openUrl(
-        QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetEdenPathString(path))));
+        QUrl::fromLocalFile(QString::fromStdString(Common::FS::GetLichiiPathString(path))));
 }
 
 void OpenRootDataFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::EdenDir);
+    OpenLichiiFolder(Common::FS::LichiiPath::LichiiDir);
 }
 
 void OpenNANDFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::NANDDir);
+    OpenLichiiFolder(Common::FS::LichiiPath::NANDDir);
 }
 
 void OpenSaveFolder() {
     const auto path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) / "user/save/0000000000000000";
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) / "user/save/0000000000000000";
     QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(path.string())));
 }
 
 void OpenSDMCFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::SDMCDir);
+    OpenLichiiFolder(Common::FS::LichiiPath::SDMCDir);
 }
 
 void OpenModFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::LoadDir);
+    OpenLichiiFolder(Common::FS::LichiiPath::LoadDir);
 }
 
 void OpenLogFolder() {
-    OpenEdenFolder(Common::FS::EdenPath::LogDir);
+    OpenLichiiFolder(Common::FS::LichiiPath::LogDir);
 }
 
 static QString GetGameListErrorRemoving(QtCommon::Game::InstalledEntryType type) {
@@ -241,7 +241,7 @@ void RemoveAddOnContent(u64 program_id, InstalledEntryType type) {
 // Global Content //
 
 void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target) {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = [&] {
         switch (target) {
@@ -271,7 +271,7 @@ void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target) 
 }
 
 void RemoveVulkanDriverPipelineCache(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::ShaderDir);
     const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
     const auto target_file = VideoCommon::VersionedPipelineCachePath(
         shader_cache_folder_path, "vulkan_pipelines", VideoCommon::VulkanPipelineCacheVersion);
@@ -286,7 +286,7 @@ void RemoveVulkanDriverPipelineCache(u64 program_id) {
 }
 
 void RemoveAllTransferableShaderCaches(u64 program_id) {
-    const auto shader_cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_cache_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::ShaderDir);
     const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
 
     if (!Common::FS::Exists(program_shader_cache_dir)) {
@@ -311,7 +311,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path) {
         program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
                         : fmt::format("{:016X}.ini", program_id);
     const auto custom_config_file_path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::ConfigDir) / "custom" / config_file_name;
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::ConfigDir) / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
         QtCommon::Frontend::Warning(tr("Error Removing Custom Configuration"),
@@ -329,7 +329,7 @@ void RemoveCustomConfiguration(u64 program_id, const std::string& game_path) {
 }
 
 void RemoveCacheStorage(u64 program_id) {
-    const auto nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
+    const auto nand_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir);
     auto vfs_nand_dir =
         vfs->OpenDirectory(Common::FS::PathToUTF8String(nand_dir), FileSys::OpenMode::Read);
 
@@ -347,13 +347,13 @@ void RemoveCacheStorage(u64 program_id) {
 void ResetMetadata(bool show_message) {
     const QString title = tr("Reset Metadata Cache");
 
-    if (!Common::FS::Exists(Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) /
+    if (!Common::FS::Exists(Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) /
                             "game_list/")) {
         if (show_message)
             QtCommon::Frontend::Warning(rootObject, title,
                                         tr("The metadata cache is already empty."));
     } else if (Common::FS::RemoveDirRecursively(
-                   Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "game_list")) {
+                   Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "game_list")) {
         if (show_message)
             QtCommon::Frontend::Information(rootObject, title,
                                             tr("The operation completed successfully."));
@@ -405,8 +405,8 @@ inline constexpr bool CreateShortcutMessagesGUI(ShortcutMessages imsg, const QSt
 void CreateShortcut(const std::string& game_path, const u64 program_id,
                     const std::string& game_title_, const ShortcutTarget& target,
                     std::string arguments_, const bool needs_title) {
-    // Get path to Eden executable
-    std::filesystem::path command = GetEdenCommand();
+    // Get path to the Lichii executable
+    std::filesystem::path command = GetLichiiCommand();
 
     // Shortcut path
     std::filesystem::path shortcut_path = GetShortcutPath(target);
@@ -486,7 +486,7 @@ void CreateShortcut(const std::string& game_path, const u64 program_id,
     if (CreateShortcutMessagesGUI(ShortcutMessages::Fullscreen, qgame_title)) {
         arguments = "-f " + arguments;
     }
-    const std::string comment = fmt::format("Start {:s} with the Eden Emulator", game_title);
+    const std::string comment = fmt::format("Start {:s} with Lichii", game_title);
     const std::string categories = "Game;Emulator;Qt;";
     const std::string keywords = "Switch;Nintendo;";
 
@@ -534,7 +534,7 @@ void CreateHomeMenuShortcut(ShortcutTarget target) {
     auto qlaunch_applet_nca = bis_system->GetEntry(QLaunchId, FileSys::ContentRecordType::Program);
     const auto game_path = qlaunch_applet_nca->GetFullPath();
 
-    // TODO(crueter): Make this use the Eden icon
+    // TODO(crueter): Make this use the Lichii icon
     CreateShortcut(game_path, QLaunchId, "Switch Home Menu", target, "-qlaunch", false);
 }
 

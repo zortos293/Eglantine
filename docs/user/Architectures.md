@@ -127,7 +127,7 @@ Do note that building the GUI version with Qt versions higher than 6.7.3 will ca
 
 ## *BSD, Solaris
 
-BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and ports. For example, OpenIndiana (Solaris) does not properly package Qt, meaning the recommended method of usage is to use `eden-cli` for now. Solaris also generally works better with OpenGL.
+BSD and Solaris distributions tend to lag behind Linux in terms of Vulkan and ports. For example, OpenIndiana (Solaris) does not properly package Qt, meaning the recommended method of usage is to use `lichii-cli` for now. Solaris also generally works better with OpenGL.
 
 AMD GPU support on these platforms is limited or nonexistent, bar for OpenBSD which has a dedicated AMD GPU stack.
 

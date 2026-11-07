@@ -583,37 +583,37 @@ void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_saveControlPlayerValues(JNIEnv* 
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSaveDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::SaveDir));
+        Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SaveDir));
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getDefaultSaveDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::GetLichiiPathString(Common::FS::LichiiPath::NANDDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSaveDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SaveDir, path);
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::SaveDir, path);
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getNandDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::NANDDir));
+        Common::FS::GetLichiiPathString(Common::FS::LichiiPath::NANDDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setNandDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::NANDDir, path);
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::NANDDir, path);
 }
 
 jstring Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getSdmcDir(JNIEnv* env, jobject obj) {
     return Common::Android::ToJString(env,
-        Common::FS::GetEdenPathString(Common::FS::EdenPath::SDMCDir));
+        Common::FS::GetLichiiPathString(Common::FS::LichiiPath::SDMCDir));
 }
 
 void Java_org_yuzu_yuzu_1emu_utils_NativeConfig_setSdmcDir(JNIEnv* env, jobject obj, jstring jpath) {
     auto path = Common::Android::GetJString(env, jpath);
-    Common::FS::SetEdenPath(Common::FS::EdenPath::SDMCDir, path);
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::SDMCDir, path);
 }
 
 jobjectArray Java_org_yuzu_yuzu_1emu_utils_NativeConfig_getExternalContentDirs(JNIEnv* env,

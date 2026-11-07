@@ -199,7 +199,7 @@ FxEffectDesc DescribeEffect(const std::filesystem::path& path, const std::filesy
 } // Anonymous namespace
 
 std::filesystem::path GetFxRootDirectory() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::PostShaderDir);
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::PostShaderDir);
 }
 
 std::vector<std::filesystem::path> GetFxIncludePaths(const std::filesystem::path& effect_path) {

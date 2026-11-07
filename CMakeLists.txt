@@ -286,7 +286,7 @@ option(NIGHTLY_BUILD "Use Nightly qualifiers in the update checker and build met
 cmake_dependent_option(YUZU_ROOM "Enable dedicated room functionality" ON "NOT ANDROID" OFF)
 cmake_dependent_option(YUZU_ROOM_STANDALONE "Enable standalone room executable" ON "YUZU_ROOM" OFF)
 
-cmake_dependent_option(YUZU_CMD "Compile the eden-cli executable" ON "NOT ANDROID" OFF)
+cmake_dependent_option(YUZU_CMD "Compile the lichii-cli executable" ON "NOT ANDROID" OFF)
 
 cmake_dependent_option(YUZU_CRASH_DUMPS "Compile crash dump (Minidump) support" OFF "WIN32 OR LINUX" OFF)
 
@@ -770,6 +770,6 @@ endif()
 if (YUZU_INSTALL_UDEV_RULES)
     include(GNUInstallDirs)
 
-    install(FILES "dist/72-eden-input.rules"
+    install(FILES "dist/72-lichii-input.rules"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/udev/rules.d")
 endif()

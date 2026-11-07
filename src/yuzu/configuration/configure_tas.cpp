@@ -31,7 +31,7 @@ ConfigureTasDialog::~ConfigureTasDialog() = default;
 
 void ConfigureTasDialog::LoadConfiguration() {
     ui->tas_path_edit->setText(
-        QString::fromStdString(Common::FS::GetEdenPathString(Common::FS::EdenPath::TASDir)));
+        QString::fromStdString(Common::FS::GetLichiiPathString(Common::FS::LichiiPath::TASDir)));
     ui->tas_enable->setChecked(Settings::values.tas_enable.GetValue());
     ui->tas_loop_script->setChecked(Settings::values.tas_loop.GetValue());
     ui->tas_pause_on_load->setChecked(Settings::values.pause_tas_on_load.GetValue());
@@ -40,7 +40,7 @@ void ConfigureTasDialog::LoadConfiguration() {
 }
 
 void ConfigureTasDialog::ApplyConfiguration() {
-    Common::FS::SetEdenPath(Common::FS::EdenPath::TASDir, ui->tas_path_edit->text().toStdString());
+    Common::FS::SetLichiiPath(Common::FS::LichiiPath::TASDir, ui->tas_path_edit->text().toStdString());
     Settings::values.tas_enable.SetValue(ui->tas_enable->isChecked());
     Settings::values.tas_loop.SetValue(ui->tas_loop_script->isChecked());
     Settings::values.pause_tas_on_load.SetValue(ui->tas_pause_on_load->isChecked());

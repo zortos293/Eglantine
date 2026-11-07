@@ -46,17 +46,17 @@ std::mutex images_mutex;
 
 
 std::filesystem::path GetCachePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "github_releases.json";
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "news" / "github_releases.json";
 }
 
 std::filesystem::path GetDefaultLogoPath(bool large) {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" /
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "news" /
            (large ? "eden_logo_large.jpg" : "eden_logo_small.jpg");
 }
 
 std::filesystem::path GetNewsImagePath(std::string_view news_id, bool large) {
     const std::string filename = fmt::format("{}_{}.jpg", news_id, large ? "large" : "small");
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "news" / "images" / filename;
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "news" / "images" / filename;
 }
 
 u32 HashToNewsId(std::string_view key) {
@@ -311,7 +311,7 @@ void ImportReleases(const std::vector<Common::Net::Release> &releases) {
         const u64 pickup_limit = published + 600000000;
         const u32 priority = rel.prerelease ? 1500 : 2500;
 
-        std::string author = "Eden";
+        std::string author = "Lichii";
 
         auto payload = BuildMsgpack(title, FormatBody(body, title), title, published,
                                     pickup_limit, priority, {"en"}, author, {},
@@ -411,7 +411,7 @@ std::vector<u8> BuildMsgpack(std::string_view title, std::string_view body,
 
     // Topic name = who wrote it
     w.WriteKey("topic_name");
-    w.WriteString("Eden");
+    w.WriteString("Lichii");
 
     w.WriteKey("list_image");
     w.WriteBinary(img_small);

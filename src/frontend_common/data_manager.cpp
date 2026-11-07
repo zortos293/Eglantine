@@ -13,8 +13,8 @@ namespace fs = std::filesystem;
 
 const fs::path GetDataDir(DataDir dir, const std::string &user_id)
 {
-    const fs::path nand_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir);
-    const fs::path save_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::SaveDir);
+    const fs::path nand_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir);
+    const fs::path save_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::SaveDir);
 
     switch (dir) {
     case DataDir::Saves:
@@ -26,9 +26,9 @@ const fs::path GetDataDir(DataDir dir, const std::string &user_id)
         // that contains profile data and other stuff
         return (nand_dir / "system" / "Contents" / "registered").string();
     case DataDir::Mods:
-        return Common::FS::GetEdenPathString(Common::FS::EdenPath::LoadDir);
+        return Common::FS::GetLichiiPathString(Common::FS::LichiiPath::LoadDir);
     case DataDir::Shaders:
-        return Common::FS::GetEdenPathString(Common::FS::EdenPath::ShaderDir);
+        return Common::FS::GetLichiiPathString(Common::FS::LichiiPath::ShaderDir);
     default:
         UNIMPLEMENTED();
     }

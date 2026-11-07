@@ -30,7 +30,7 @@ CountMap g_counts;
 bool g_loaded = false;
 
 std::filesystem::path GetCachePath() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir) / "launched.json";
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir) / "launched.json";
 }
 
 std::optional<std::string> ReadFileToString(const std::filesystem::path& path) {

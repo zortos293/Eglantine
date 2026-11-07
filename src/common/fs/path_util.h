@@ -13,8 +13,8 @@
 
 namespace Common::FS {
 
-enum class EdenPath {
-    EdenDir,        // Where yuzu stores its data.
+enum class LichiiPath {
+    LichiiDir,        // Where yuzu stores its data.
     AmiiboDir,      // Where Amiibo backups are stored.
     CacheDir,       // Where cached filesystem data is stored.
     ConfigDir,      // Where config files are stored.
@@ -223,13 +223,13 @@ template <typename Path>
 void SetAppDirectory(const std::string& app_directory);
 
 /**
- * Gets the filesystem path associated with the EdenPath enum.
+ * Gets the filesystem path associated with the LichiiPath enum.
  *
- * @param eden_path EdenPath enum
+ * @param lichii_path LichiiPath enum
  *
- * @returns The filesystem path associated with the EdenPath enum.
+ * @returns The filesystem path associated with the LichiiPath enum.
  */
-[[nodiscard]] const std::filesystem::path& GetEdenPath(EdenPath eden_path);
+[[nodiscard]] const std::filesystem::path& GetLichiiPath(LichiiPath lichii_path);
 
 /**
  * Gets the filesystem path associated with the LegacyPath enum.
@@ -241,13 +241,13 @@ void SetAppDirectory(const std::string& app_directory);
 [[nodiscard]] const std::filesystem::path& GetLegacyPath(EmuPath legacy_path);
 
 /**
- * Gets the filesystem path associated with the EdenPath enum as a UTF-8 encoded std::string.
+ * Gets the filesystem path associated with the LichiiPath enum as a UTF-8 encoded std::string.
  *
- * @param eden_path EdenPath enum
+ * @param lichii_path LichiiPath enum
  *
- * @returns The filesystem path associated with the EdenPath enum as a UTF-8 encoded std::string.
+ * @returns The filesystem path associated with the LichiiPath enum as a UTF-8 encoded std::string.
  */
-[[nodiscard]] std::string GetEdenPathString(EdenPath eden_path);
+[[nodiscard]] std::string GetLichiiPathString(LichiiPath lichii_path);
 
 /**
  * Gets the filesystem path associated with the LegacyPath enum as a UTF-8 encoded std::string.
@@ -259,26 +259,26 @@ void SetAppDirectory(const std::string& app_directory);
 [[nodiscard]] std::string GetLegacyPathString(EmuPath legacy_path);
 
 /**
- * Sets a new filesystem path associated with the EdenPath enum.
+ * Sets a new filesystem path associated with the LichiiPath enum.
  * If the filesystem object at new_path is not a directory, this function will not do anything.
  *
- * @param eden_path EdenPath enum
+ * @param lichii_path LichiiPath enum
  * @param new_path New filesystem path
  */
-void SetEdenPath(EdenPath eden_path, const std::filesystem::path& new_path);
+void SetLichiiPath(LichiiPath lichii_path, const std::filesystem::path& new_path);
 
 /**
- * Creates all necessary Eden paths in the filesystem.
+ * Creates all necessary Lichii paths in the filesystem.
  */
-void CreateEdenPaths();
+void CreateLichiiPaths();
 
 #ifdef _WIN32
 template <typename Path>
-void SetEdenPath(EdenPath eden_path, const Path& new_path) {
+void SetLichiiPath(LichiiPath lichii_path, const Path& new_path) {
     if constexpr (IsChar<typename Path::value_type>) {
-        SetEdenPath(eden_path, ToU8String(new_path));
+        SetLichiiPath(lichii_path, ToU8String(new_path));
     } else {
-        SetEdenPath(eden_path, std::filesystem::path{new_path});
+        SetLichiiPath(lichii_path, std::filesystem::path{new_path});
     }
 }
 #endif

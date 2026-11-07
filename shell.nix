@@ -16,10 +16,10 @@ pkgs.mkShellNoCC {
     spirv-tools spirv-headers vulkan-loader mesa unzip
     glslang python3 httplib cpp-jwt ffmpeg-headless
     libusb1 cubeb
-    # eden
+    # lichii
     qt6.qtbase qt6.qtmultimedia qt6.qtwayland qt6.qttools qt6.qtcharts
     qt6.qtwebengine qt6.qt5compat
-    # eden-cli
+    # lichii-cli
     sdl3
     # optional components
     discord-rpc gamemode

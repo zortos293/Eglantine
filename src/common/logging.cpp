@@ -434,7 +434,7 @@ void Initialize() {
         logging_instance->filter.ParseFilterString(Settings::values.log_filter.GetValue());
 #ifndef __OPENORBIS__
         using namespace Common::FS;
-        const auto& log_dir = GetEdenPath(EdenPath::LogDir);
+        const auto& log_dir = GetLichiiPath(LichiiPath::LogDir);
         void(CreateDir(log_dir));
         logging_instance->file_backend.emplace(log_dir / LOG_FILE);
 #endif

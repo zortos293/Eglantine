@@ -3,14 +3,14 @@ set -u
 
 usage() {
     cat <<EOF
-Usage: $0 <eden-cli> <exefs main> <sdl config ini> [seconds] [VAR=value...]
+Usage: $0 <lichii-cli> <exefs main> <sdl config ini> [seconds] [VAR=value...]
 
-Boots Mario Kart World in eden-cli, drives the menus with a key script
+Boots Mario Kart World in lichii-cli, drives the menus with a key script
 (L+R, then A: Grand Prix, Mario, Mushroom Cup, 50cc, OK), holds A in the
 race and prints the race frame rate from 15 to 85 s into the race (the race
 starts when the cup intro movie ends, or about 10 s after the menus when
 the game skips the movie). 300 seconds is enough with a warm shader cache.
-The VAR=value arguments are passed to eden-cli as environment variables.
+The VAR=value arguments are passed to lichii-cli as environment variables.
 
 The config needs the default keyboard bindings (A on the A key, L on F,
 R on H). Output goes to ./mkw_race_bench/<timestamp>.

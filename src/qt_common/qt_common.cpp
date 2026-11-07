@@ -198,7 +198,7 @@ static QString PrettyProductName() {
 }
 
 static void RemoveCachedContents() {
-    const auto cache_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::CacheDir);
+    const auto cache_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::CacheDir);
     const auto offline_fonts = cache_dir / "fonts";
     const auto offline_manual = cache_dir / "offline_web_applet_manual";
     const auto offline_legal_information = cache_dir / "offline_web_applet_legal_information";
@@ -218,7 +218,7 @@ void Init(QWidget* root) {
     provider = std::make_unique<FileSys::ManualContentProvider>();
 
     // initialization stuff
-    Common::FS::CreateEdenPaths();
+    Common::FS::CreateLichiiPaths();
 
     system->Initialize();
 
@@ -281,7 +281,7 @@ void Init(QWidget* root) {
     RemoveCachedContents();
 }
 
-std::filesystem::path GetEdenCommand() {
+std::filesystem::path GetLichiiCommand() {
     std::filesystem::path command;
 
     // TODO: flatpak?

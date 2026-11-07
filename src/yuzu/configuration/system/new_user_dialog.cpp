@@ -35,7 +35,7 @@ QPixmap NewUserDialog::DefaultAvatar() {
 
 QString NewUserDialog::GetImagePath(const Common::UUID& uuid) {
     const auto path =
-        Common::FS::GetEdenPath(Common::FS::EdenPath::NANDDir) /
+        Common::FS::GetLichiiPath(Common::FS::LichiiPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
     return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }
@@ -58,7 +58,7 @@ NewUserDialog::NewUserDialog(Common::UUID uuid, const std::string& username, con
 }
 
 NewUserDialog::NewUserDialog(QWidget* parent) : QDialog(parent) {
-    setup(Common::UUID::MakeRandom(), "Eden", tr("New User"));
+    setup(Common::UUID::MakeRandom(), "Lichii", tr("New User"));
 }
 
 void NewUserDialog::setup(Common::UUID uuid, const std::string& username, const QString& title) {

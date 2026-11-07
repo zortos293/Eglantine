@@ -17,7 +17,7 @@ namespace FS = Common::FS;
 namespace {
 
 bool ProfileExistsInFilesystem(std::string_view profile_name) {
-    return FS::Exists(FS::GetEdenPath(FS::EdenPath::ConfigDir) / "input" /
+    return FS::Exists(FS::GetLichiiPath(FS::LichiiPath::ConfigDir) / "input" /
                       fmt::format("{}.ini", profile_name));
 }
 
@@ -32,7 +32,7 @@ std::filesystem::path GetNameWithoutExtension(std::filesystem::path filename) {
 } // namespace
 
 InputProfiles::InputProfiles() {
-    const auto input_profile_loc = FS::GetEdenPath(FS::EdenPath::ConfigDir) / "input";
+    const auto input_profile_loc = FS::GetLichiiPath(FS::LichiiPath::ConfigDir) / "input";
 
     if (!FS::IsDir(input_profile_loc)) {
         return;

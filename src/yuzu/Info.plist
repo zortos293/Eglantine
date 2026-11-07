@@ -91,7 +91,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.xml</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.xaml</string>
+            <string>io.github.zortos293.lichii.xaml</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>
@@ -108,7 +108,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.data</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.nsp</string>
+            <string>io.github.zortos293.lichii.nsp</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>
@@ -125,7 +125,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.data</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.xci</string>
+            <string>io.github.zortos293.lichii.xci</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>
@@ -142,7 +142,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.data</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.nca</string>
+            <string>io.github.zortos293.lichii.nca</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>
@@ -159,7 +159,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.data</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.nro</string>
+            <string>io.github.zortos293.lichii.nro</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>
@@ -176,7 +176,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
             <string>public.data</string>
             </array>
             <key>UTTypeIdentifier</key>
-            <string>com.eden-emu.nso</string>
+            <string>io.github.zortos293.lichii.nso</string>
             <key>UTTypeTagSpecification</key>
             <dict>
             <key>public.filename-extension</key>

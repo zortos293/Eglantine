@@ -7,10 +7,10 @@
       "layers" : [
         {
           "fill" : "none",
-          "image-name" : "dev.eden_emu.eden.svg",
-          "name" : "dev.eden_emu.eden",
+          "image-name" : "lichii.svg",
+          "name" : "lichii",
           "position" : {
-            "scale" : 1.8,
+            "scale" : 1.0,
             "translation-in-points" : [
               0,
               0

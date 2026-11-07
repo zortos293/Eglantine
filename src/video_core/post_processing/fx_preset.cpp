@@ -102,7 +102,7 @@ std::string ComposePreset(const FxPresetDesc& desc) {
 } // Anonymous namespace
 
 std::filesystem::path GetFxPresetDirectory() {
-    return Common::FS::GetEdenPath(Common::FS::EdenPath::PostPresetDir);
+    return Common::FS::GetLichiiPath(Common::FS::LichiiPath::PostPresetDir);
 }
 
 void ReloadFxPresetCatalog() {

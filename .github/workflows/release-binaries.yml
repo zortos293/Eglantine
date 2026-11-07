@@ -277,6 +277,7 @@ jobs:
             -DLICHII_BUILD_PLATFORM=${{ matrix.platform }}
             -DUSE_DISCORD_PRESENCE=OFF
             -DUSE_CCACHE=ON
+            -DENABLE_QT_TRANSLATION=ON
           )
           if [ '${{ matrix.pgo }}' = 'true' ]; then
             # Same flags Eden's CI passes for its clang PGO build.
@@ -319,6 +320,7 @@ jobs:
             -DLICHII_BUILD_TAG=build-${{ github.run_number }} \
             -DLICHII_BUILD_PLATFORM=${{ matrix.platform }} \
             -DUSE_DISCORD_PRESENCE=OFF \
+            -DENABLE_QT_TRANSLATION=ON \
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
             "-DCMAKE_C_COMPILER=$LLVM_ROOT/bin/clang-cl.exe" \
@@ -349,7 +351,8 @@ jobs:
             -DLICHII_BUILD_TAG=build-${{ github.run_number }} \
             -DLICHII_BUILD_PLATFORM=${{ matrix.platform }} \
             -DUSE_DISCORD_PRESENCE=OFF \
-            -DUSE_CCACHE=ON
+            -DUSE_CCACHE=ON \
+            -DENABLE_QT_TRANSLATION=ON
 
       - name: Save CPM downloads
         if: steps.cpm-cache.outputs.cache-hit != 'true'
@@ -389,10 +392,10 @@ jobs:
         run: |
           set -euo pipefail
           test -x build/release/bin/lichii
-          test -x build/release/bin/eden-cli
-          strip build/release/bin/lichii build/release/bin/eden-cli
+          test -x build/release/bin/lichii-cli
+          strip build/release/bin/lichii build/release/bin/lichii-cli
           tar -czf "lichii-${GITHUB_SHA}-${{ matrix.platform }}.tar.gz" \
-            -C build/release/bin lichii eden-cli nx2_switches.txt
+            -C build/release/bin lichii lichii-cli nx2_switches.txt
           ls -la "lichii-${GITHUB_SHA}-${{ matrix.platform }}.tar.gz"
 
       # A self-contained AppImage: linuxdeploy bundles every library the two programs need except
@@ -404,7 +407,7 @@ jobs:
         run: |
           set -euo pipefail
           test -x build/release/bin/lichii
-          test -x build/release/bin/eden-cli
+          test -x build/release/bin/lichii-cli
           tools="$RUNNER_TEMP/linuxdeploy"
           mkdir -p "$tools"
           arch=$(uname -m)   # aarch64 or x86_64
@@ -430,7 +433,7 @@ jobs:
           cp build/release/bin/nx2_switches.txt AppDir/usr/bin/
           "$tools/linuxdeploy-$arch.AppImage" --appdir AppDir \
             --executable build/release/bin/lichii \
-            --executable build/release/bin/eden-cli \
+            --executable build/release/bin/lichii-cli \
             --desktop-file dist/io.github.zortos293.lichii.desktop \
             --icon-file "$icon" \
             --plugin qt \
@@ -442,7 +445,7 @@ jobs:
         if: startsWith(matrix.platform, 'windows')
         shell: pwsh
         run: |
-          foreach ($exe in 'lichii.exe', 'eden-cli.exe') {
+          foreach ($exe in 'lichii.exe', 'lichii-cli.exe') {
             if (-not (Test-Path "build/release/bin/$exe")) {
               throw "build/release/bin/$exe was not produced"
             }
@@ -459,10 +462,10 @@ jobs:
           set -euo pipefail
           app=build/release/bin/lichii.app
           test -x "$app/Contents/MacOS/lichii"
-          test -x build/release/bin/eden-cli
-          cp build/release/bin/eden-cli "$app/Contents/MacOS/eden-cli"
+          test -x build/release/bin/lichii-cli
+          cp build/release/bin/lichii-cli "$app/Contents/MacOS/lichii-cli"
           "$(brew --prefix qt@6)/bin/macdeployqt" "$app" \
-            -executable="$app/Contents/MacOS/eden-cli" -libpath="$(brew --prefix)/lib" \
+            -executable="$app/Contents/MacOS/lichii-cli" -libpath="$(brew --prefix)/lib" \
             -always-overwrite -verbose=1
           # Qt's virtual keyboard input plugin pulls in the QML stack, which the emulator doesn't use.
           rm -f "$app/Contents/PlugIns/platforminputcontexts/libqtvirtualkeyboardplugin.dylib"
@@ -475,7 +478,7 @@ jobs:
               done
           done
           # Libraries that load their dependencies through @rpath find them in the bundle.
-          for program in lichii eden-cli; do
+          for program in lichii lichii-cli; do
             install_name_tool -add_rpath @executable_path/../Frameworks \
               "$app/Contents/MacOS/$program" 2> /dev/null
           done
@@ -492,10 +495,10 @@ jobs:
           # macdeployqt invalidates the signatures. The programs get the entitlements when the
           # tree has them (the Hypervisor CPU backend needs com.apple.security.hypervisor).
           codesign --force --deep --sign - "$app"
-          if [ -f dist/eglantine.entitlements ]; then
-            codesign --force --sign - --entitlements dist/eglantine.entitlements \
-              "$app/Contents/MacOS/eden-cli"
-            codesign --force --sign - --entitlements dist/eglantine.entitlements "$app"
+          if [ -f dist/lichii.entitlements ]; then
+            codesign --force --sign - --entitlements dist/lichii.entitlements \
+              "$app/Contents/MacOS/lichii-cli"
+            codesign --force --sign - --entitlements dist/lichii.entitlements "$app"
           fi
           codesign --verify --deep --strict "$app"
           ditto -c -k --keepParent "$app" "lichii-${GITHUB_SHA}-${{ matrix.platform }}.zip"
@@ -643,7 +646,7 @@ jobs:
 
           ## Windows
 
-          Windows packages are in-place zip files: extract and run \`lichii.exe\`, or \`eden-cli.exe\` from a terminal.
+          Windows packages are in-place zip files: extract and run \`lichii.exe\`, or \`lichii-cli.exe\` from a terminal.
 
           $({
             row "amd64 / x86_64" "$(link zip lichii-windows-x86_64.zip)" "$(link "PGO zip" lichii-windows-x86_64-pgo.zip)" "Both built with clang-cl and ThinLTO; the PGO zip adds a profile trained on Ocarina of Time"
@@ -651,7 +654,7 @@ jobs:
 
           ## macOS
 
-          $(row "arm64 (Apple Silicon)" "$(link zip lichii-macos-arm64.zip)" "" "macOS 15 or newer. Not notarized: right-click and choose Open the first time, or run \`xattr -dr com.apple.quarantine lichii.app\`. \`eden-cli\` is inside the app, in \`Contents/MacOS\`" | table)
+          $(row "arm64 (Apple Silicon)" "$(link zip lichii-macos-arm64.zip)" "" "macOS 15 or newer. Not notarized: right-click and choose Open the first time, or run \`xattr -dr com.apple.quarantine lichii.app\`. \`lichii-cli\` is inside the app, in \`Contents/MacOS\`" | table)
 
           ${pgo_note}
           EOF

@@ -19,4 +19,4 @@ IDI_ICON1               ICON                    "../../dist/lichii.ico"
 // RT_MANIFEST
 //
 
-0                       RT_MANIFEST             "../../dist/yuzu.manifest"
+0                       RT_MANIFEST             "../../dist/lichii.manifest"

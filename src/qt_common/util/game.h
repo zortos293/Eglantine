@@ -39,7 +39,7 @@ bool CreateShortcutLink(const std::filesystem::path& shortcut_path, const std::s
 bool MakeShortcutIcoPath(const u64 program_id, const std::string_view game_file_name,
                          std::filesystem::path& out_icon_path);
 
-void OpenEdenFolder(const Common::FS::EdenPath& path);
+void OpenLichiiFolder(const Common::FS::LichiiPath& path);
 void OpenRootDataFolder();
 void OpenNANDFolder();
 void OpenSaveFolder();

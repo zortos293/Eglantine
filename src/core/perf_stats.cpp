@@ -42,7 +42,7 @@ PerfStats::~PerfStats() {
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
 
-    const auto path = Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir);
+    const auto path = Common::FS::GetLichiiPath(Common::FS::LichiiPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
     const auto filename = fmt::format("{}_{:016X}.csv",
         [&] {

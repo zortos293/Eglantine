@@ -579,12 +579,12 @@ public:
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
 #elif defined(__APPLE__)
         char shm_name[32];
-        std::snprintf(shm_name, sizeof(shm_name), "/eden_mem_%d", int(getpid()));
+        std::snprintf(shm_name, sizeof(shm_name), "/lichii_mem_%d", int(getpid()));
         fd = shm_open(shm_name, O_RDWR | O_CREAT | O_EXCL, 0600);
         if (fd >= 0) {
             shm_unlink(shm_name);
         } else {
-            char template_path[] = "/tmp/eden_mem_XXXXXX";
+            char template_path[] = "/tmp/lichii_mem_XXXXXX";
             fd = mkstemp(template_path);
             if (fd >= 0) {
                 unlink(template_path);
@@ -592,7 +592,7 @@ public:
         }
 #elif defined(__managarm__)
         // macOS doesn't have memfd_create, use anonymous temporary file
-        char template_path[] = "/tmp/eden_mem_XXXXXX";
+        char template_path[] = "/tmp/lichii_mem_XXXXXX";
         fd = mkstemp(template_path);
         if (fd >= 0) {
             unlink(template_path);

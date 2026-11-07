@@ -411,7 +411,7 @@ constexpr std::array<char, 8> STATIC_CACHE_MAGIC_NUMBER{'e', 'd', 'e', 'n', 's',
 constexpr u32 STATIC_CACHE_VERSION = 1;
 
 std::filesystem::path StaticPipelineCacheFilename() {
-    const auto shader_dir = Common::FS::GetEdenPath(Common::FS::EdenPath::ShaderDir);
+    const auto shader_dir = Common::FS::GetLichiiPath(Common::FS::LichiiPath::ShaderDir);
     if (!Common::FS::CreateDir(shader_dir)) {
         return {};
     }

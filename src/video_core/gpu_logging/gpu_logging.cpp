@@ -47,7 +47,7 @@ void GPULogger::Initialize(LogLevel level, DriverType driver) {
 
     // Create log directory
     using namespace Common::FS;
-    const auto& log_dir = GetEdenPath(EdenPath::LogDir);
+    const auto& log_dir = GetLichiiPath(LichiiPath::LogDir);
     [[maybe_unused]] const bool log_dir_created = CreateDir(log_dir);
 
     // Create GPU crashes directory
@@ -108,7 +108,7 @@ void GPULogger::Initialize(LogLevel level, DriverType driver) {
     }
 
     const auto header = fmt::format(
-        "=== Eden GPU Logging Started ===\n"
+        "=== Lichii GPU Logging Started ===\n"
         "Timestamp: {}\n"
         "Log Level: {}\n"
         "Driver: {}\n"
@@ -308,7 +308,7 @@ void DumpSpirvShader(u64 shader_hash, std::span<const u32> spirv_code) {
     }
 
     using namespace Common::FS;
-    const auto& dump_dir = GetEdenPath(EdenPath::DumpDir);
+    const auto& dump_dir = GetLichiiPath(LichiiPath::DumpDir);
 
     // Ensure DumpDir exists once. CreateDir is idempotent, so guarded to skip the syscall.
     static std::once_flag dump_dir_flag;
@@ -571,7 +571,7 @@ GPUStateSnapshot GPULogger::GetCurrentSnapshot() {
 
 void GPULogger::DumpStateToFile(const std::string& crash_reason) {
     using namespace Common::FS;
-    const auto& log_dir = GetEdenPath(EdenPath::LogDir);
+    const auto& log_dir = GetLichiiPath(LichiiPath::LogDir);
     const auto crashes_dir = log_dir / "gpu_crashes";
     [[maybe_unused]] const bool crashes_dir_created = CreateDir(crashes_dir);
 

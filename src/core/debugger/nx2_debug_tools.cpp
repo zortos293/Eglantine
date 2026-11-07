@@ -941,7 +941,7 @@ std::unique_ptr<Service> MaybeStartService(System& system, std::string title, u6
     const char* const directory = std::getenv("EDEN_NX2_DEBUG_DIR");
     std::string dump_directory = directory != nullptr && *directory != '\0'
         ? std::string{directory}
-        : (Common::FS::GetEdenPath(Common::FS::EdenPath::LogDir) / "debug-server").generic_string();
+        : (Common::FS::GetLichiiPath(Common::FS::LichiiPath::LogDir) / "debug-server").generic_string();
     try {
         return std::make_unique<Service>(system, std::move(title), program_id, *endpoint,
                                          std::move(dump_directory));

@@ -72,7 +72,7 @@ static void PrintHelp(const char* argv0) {
 }
 
 static void PrintVersion() {
-    LOG_INFO(Network, "Eden dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
+    LOG_INFO(Network, "Lichii dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
              Common::g_scm_desc, Network::network_version);
 }
 
@@ -188,7 +188,7 @@ void LaunchRoom(int argc, char** argv, bool called_by_option) {
     std::string token;
     std::string web_api_url;
     std::string ban_list_file;
-    std::string log_file = "eden-room.log";
+    std::string log_file = "lichii-room.log";
     std::string bind_address;
     u64 preferred_game_id = 0;
     u32 port = Network::DefaultRoomPort;
@@ -325,14 +325,14 @@ void LaunchRoom(int argc, char** argv, bool called_by_option) {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             PadToken(token);
-            Settings::values.eden_username = UsernameFromDisplayToken(token);
-            username = Settings::values.eden_username.GetValue();
-            Settings::values.eden_token = TokenFromDisplayToken(token);
+            Settings::values.lichii_username = UsernameFromDisplayToken(token);
+            username = Settings::values.lichii_username.GetValue();
+            Settings::values.lichii_token = TokenFromDisplayToken(token);
         } else {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
-            Settings::values.eden_username = username;
-            Settings::values.eden_token = token;
+            Settings::values.lichii_username = username;
+            Settings::values.lichii_token = token;
         }
     }
 

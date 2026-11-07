@@ -29,8 +29,8 @@ void LinkRyujinx(std::filesystem::path& from, std::filesystem::path& to) {
     }
 }
 
-bool CheckUnlink(const fs::path& eden_dir, const fs::path& ryu_dir) {
-    bool eden_link = Common::FS::IsSymlink(eden_dir);
+bool CheckUnlink(const fs::path& lichii_dir, const fs::path& ryu_dir) {
+    bool eden_link = Common::FS::IsSymlink(lichii_dir);
     bool ryu_link = Common::FS::IsSymlink(ryu_dir);
 
     if (!(eden_link || ryu_link))
@@ -48,11 +48,11 @@ bool CheckUnlink(const fs::path& eden_dir, const fs::path& ryu_dir) {
     fs::path orig;
 
     if (eden_link) {
-        linked = eden_dir;
+        linked = lichii_dir;
         orig = ryu_dir;
     } else {
         linked = ryu_dir;
-        orig = eden_dir;
+        orig = lichii_dir;
     }
 
     linked.make_preferred();
