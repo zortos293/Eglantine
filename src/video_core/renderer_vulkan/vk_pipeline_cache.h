@@ -151,7 +151,11 @@ private:
         std::unique_ptr<EmissionBudget::Reservation> reservation = nullptr);
 
     ComputePipelineCacheEntry CreateComputePipeline(const ComputePipelineCacheKey& key,
-                                                     const ShaderInfo* shader);
+                                                     const ShaderInfo* shader,
+                                                     const ComputePipeline* previous = nullptr);
+
+    /// Whether a pointer slot the pipeline left out because it was null now holds a mapped address.
+    bool NullPointerSlotFilled(const ComputePipeline& pipeline) const;
 
     ComputePipelineCacheEntry CreateComputePipeline(ShaderPools& pools,
                                                      const ComputePipelineCacheKey& key,
@@ -191,6 +195,8 @@ private:
     std::unordered_set<u64> used_and_evicted; ///< Key hashes of pipelines used this session, evicted since
 
     ::Common::unordered_map<ComputePipelineCacheKey, ComputePipelineCacheEntry> compute_cache;
+    /// Pipelines replaced by a rebuild; queued dispatches may still use them.
+    std::vector<std::unique_ptr<ComputePipeline>> retired_compute_pipelines;
     ::Common::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<GraphicsPipeline>> graphics_cache;
 
     ShaderPools main_pools;

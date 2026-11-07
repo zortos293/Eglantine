@@ -98,6 +98,14 @@ public:
 
     void Serialize(std::ofstream& file) const;
 
+    /// Native programs: the constant buffer slots (index << 32 | offset) storage tracking took as
+    /// pointers, and the ones it left out because they held null or an unmapped address when the
+    /// program was translated.
+    void StoragePointerSlots(std::vector<u64>& pointers, std::vector<u64>& null_slots) const;
+
+    /// Takes these slots as pointers without reading them: a rebuild keeps its earlier buffers.
+    void SeedStoragePointers(std::span<const u64> slots);
+
     bool HasHLEMacroState() const override {
         return has_hle_engine_state;
     }
@@ -221,6 +229,9 @@ public:
     void Deserialize(std::ifstream& file);
 
     [[nodiscard]] size_t MemorySize() const;
+
+    /// See GenericEnvironment::StoragePointerSlots.
+    void StoragePointerSlots(std::vector<u64>& pointers, std::vector<u64>& null_slots) const;
 
     [[nodiscard]] u64 ReadInstruction(u32 address) override;
 

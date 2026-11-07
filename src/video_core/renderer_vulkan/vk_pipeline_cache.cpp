@@ -822,9 +822,49 @@ ComputePipeline* PipelineCache::CurrentComputePipeline() {
     auto& entry{pair->second};
     if (is_new) {
         entry = CreateComputePipeline(key, shader);
+    } else if (entry.pipeline && !entry.pipeline->null_pointer_slots.empty() &&
+               entry.pipeline->pointer_rebuilds < 4 && NullPointerSlotFilled(*entry.pipeline)) {
+        // A native program translated while one of its pointer slots was null (a buffer the game
+        // hadn't allocated yet) has no binding for it, and the disk cache keeps that version for
+        // later sessions: Ocarina of Time's bush leaves never appeared in Castle Town. Rebuild it
+        // once the slot holds a buffer.
+        auto rebuilt{CreateComputePipeline(key, shader, entry.pipeline.get())};
+        if (rebuilt.pipeline) {
+            LOG_INFO(Render_Vulkan,
+                     "Compute pipeline {:016x} rebuilt: a pointer slot null at its translation "
+                     "now holds a buffer ({} pointer slots, {} still null)",
+                     key.unique_hash, rebuilt.pipeline->pointer_slots.size(),
+                     rebuilt.pipeline->null_pointer_slots.size());
+            retired_compute_pipelines.push_back(std::move(entry.pipeline));
+            entry = std::move(rebuilt);
+        } else {
+            entry.pipeline->null_pointer_slots.clear();
+        }
     }
     return entry.Get(kepler_compute->IsNativeMode(),
                      kepler_compute->regs.code_loc.Address() + qmd.program_start, key);
+}
+
+bool PipelineCache::NullPointerSlotFilled(const ComputePipeline& pipeline) const {
+    const auto& qmd{kepler_compute->launch_description};
+    for (const u64 slot : pipeline.null_pointer_slots) {
+        const u32 index = static_cast<u32>(slot >> 32);
+        const u32 offset = static_cast<u32>(slot);
+        if (index >= qmd.const_buffer_config.size() ||
+            ((qmd.const_buffer_enable_mask.Value() >> index) & 1) == 0) {
+            continue;
+        }
+        const auto& cbuf{qmd.const_buffer_config[index]};
+        if (offset + sizeof(u64) > cbuf.size) {
+            continue;
+        }
+        const GPUVAddr address = gpu_memory->Read<u64>(cbuf.Address() + offset);
+        if (address != 0 && gpu_memory->IsWithinGPUAddressRange(address) &&
+            gpu_memory->IsFullyMappedRange(address, 1)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
@@ -894,9 +934,19 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
         workers.QueueWork([this, key, env_ = std::move(env), &state, &callback]() mutable {
             ShaderPools pools;
             auto entry{CreateComputePipeline(pools, key, env_, state.statistics.get(), false)};
+            if (entry.pipeline) {
+                env_.StoragePointerSlots(entry.pipeline->pointer_slots,
+                                         entry.pipeline->null_pointer_slots);
+            }
             std::scoped_lock lock{state.mutex};
             if (entry.pipeline) {
-                compute_cache.emplace(key, std::move(entry));
+                // A program rebuilt for a filled pointer slot has a second record: keep the one
+                // that binds more pointers.
+                auto& slot{compute_cache[key]};
+                if (!slot.pipeline ||
+                    slot.pipeline->pointer_slots.size() < entry.pipeline->pointer_slots.size()) {
+                    slot = std::move(entry);
+                }
             }
             ++state.built;
             if (state.has_loaded) {
@@ -1554,7 +1604,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline() {
 }
 
 ComputePipelineCacheEntry PipelineCache::CreateComputePipeline(
-    const ComputePipelineCacheKey& key, const ShaderInfo* shader) {
+    const ComputePipelineCacheKey& key, const ShaderInfo* shader,
+    const ComputePipeline* previous) {
     const auto begin = std::chrono::steady_clock::now();
     SCOPE_EXIT {
         ReportRuntimePipeline("Compute", begin,
@@ -1568,9 +1619,18 @@ ComputePipelineCacheEntry PipelineCache::CreateComputePipeline(
     ComputeEnvironment env{*kepler_compute, *gpu_memory, program_base, qmd.program_start,
                            shader->lowered_native};
     env.SetCachedSize(shader->size_bytes);
+    if (previous) {
+        // Keep the buffers the previous build bound, so a slot that empties again later doesn't
+        // drop them and start another rebuild.
+        env.SeedStoragePointers(previous->pointer_slots);
+    }
 
     main_pools.ReleaseContents();
     auto entry{CreateComputePipeline(main_pools, key, env, nullptr, true)};
+    if (entry.pipeline) {
+        env.StoragePointerSlots(entry.pipeline->pointer_slots, entry.pipeline->null_pointer_slots);
+        entry.pipeline->pointer_rebuilds = previous ? previous->pointer_rebuilds + 1 : 0;
+    }
     if (const char* directory = std::getenv("EDEN_NX2_SHADER_DUMP");
         directory && !entry.pipeline && env.CanBeSerialized()) {
         const auto path = std::filesystem::path{directory} /
