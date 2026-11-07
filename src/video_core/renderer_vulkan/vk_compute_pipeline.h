@@ -87,9 +87,11 @@ public:
     /// Advances the frame window of EDEN_NX2_UPSCALER_TRACE
     static void TickUpscalerTrace();
 
-    /// Whether no build of this pipeline is left queued on a worker thread, which holds it
+    /// Whether no build of this pipeline is left queued on a worker thread, which holds it, the
+    /// optimized build of a fast first build included
     [[nodiscard]] bool IsBuildTaskDone() const noexcept {
-        return build_task_done.load(std::memory_order::acquire);
+        return build_task_done.load(std::memory_order::acquire) &&
+               (!optimized_build || optimized_build->IsBuilt());
     }
 
 private:

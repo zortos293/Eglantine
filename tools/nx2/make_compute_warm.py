@@ -102,10 +102,15 @@ def main():
     def lower(program):
         record = work / f"{program['code_sha256']}.ovr"
         if not record.exists():
-            subprocess.run([args.sweep, str(corpus / program['code']), '--capture-extent',
-                            '--lower-only', str(work / f"{program['code_sha256']}.words"),
-                            '--override-out', str(record)],
-                           capture_output=True, timeout=300, creationflags=BELOW_NORMAL)
+            # A hung or unstartable sweep counts as a failed program, as in make_graphics_warm.py,
+            # instead of stopping the whole run.
+            try:
+                subprocess.run([args.sweep, str(corpus / program['code']), '--capture-extent',
+                                '--lower-only', str(work / f"{program['code_sha256']}.words"),
+                                '--override-out', str(record)],
+                               capture_output=True, timeout=300, creationflags=BELOW_NORMAL)
+            except (subprocess.TimeoutExpired, OSError) as ex:
+                print(f"{program['code_sha256']}: {type(ex).__name__}", file=sys.stderr)
         return program, record if record.exists() else None
 
     with ThreadPoolExecutor(args.jobs) as pool:

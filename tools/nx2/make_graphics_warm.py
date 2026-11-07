@@ -211,7 +211,11 @@ def main():
                 occurrences.setdefault((raw, key), (stage, uh))
     template = {}
     for stage in SLOT:
-        key = bytearray(mode(normalize(k) for (_, k), (s, _) in occurrences.items() if s == stage))
+        stage_keys = [normalize(k) for (_, k), (s, _) in occurrences.items() if s == stage]
+        if not stage_keys:
+            sys.exit(f'no {stage} records in the runtime caches given: a draw state template '
+                     f'for that stage cannot be derived (pass a cache from a played session)')
+        key = bytearray(mode(stage_keys))
         key[0:48] = bytes(48)
         template[stage] = bytes(key)
     runtime = collections.defaultdict(list)  # (stage, hash) -> [(raw env, key)]

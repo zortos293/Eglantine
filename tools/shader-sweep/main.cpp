@@ -116,7 +116,7 @@ struct Guesses {
     u32 texture_type{3};
     u32 pixel_format{16};
     bool storage_pointer{true};       // bank 0
-    bool storage_pointer_other{true}; // banks 1..17
+    bool storage_pointer_other{false}; // banks 1..17 (GuessMissing::storage_pointer_other)
 };
 
 class OfflineEnvironment final : public Shader::Environment {

@@ -478,6 +478,9 @@ GraphicsPipeline::GraphicsPipeline(
                          device.GetMaxTessellationPatchSize());
             throw;
         }
+        // Read by the GPU thread once the build is marked done; `pipeline` itself may be swapped
+        // later on the scheduler thread (fast first build, optimized link).
+        has_pipeline = static_cast<bool>(pipeline);
         if (pipeline_statistics && !(library_cache && !pipeline)) {
             pipeline_statistics->Collect(device, *pipeline);
         }
@@ -814,7 +817,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             scheduler.RequestOutsideRenderPassOperationContext();
         }
     }
-    if (IsBuilt() && (!pipeline || build->Failed())) {
+    if (IsBuilt() && (!has_pipeline || build->Failed())) {
         return false;
     }
     Profile::Scope scope{Profile::Zone::ConfigureDraw};
