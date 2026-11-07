@@ -1042,6 +1042,9 @@ struct Maxwell3D::FrontState {
     /// A method the draw manager handles was sent since the back last ran DrawDeferred: only
     /// then can it have a deferred instanced draw to issue at the end of a macro.
     bool draw_pending{true};
+    /// The back holds state writes in its method sink, which its next executable method consumes
+    /// (issuing a deferred draw a changed one ends). Front starts once the sink is consumed.
+    bool sink_pending{};
     bool skip_same{}; ///< SkipSameValueWrites() && FrontSkipSame(), read once
     /// The back's draw manager is in an instance loop (DrawMode::Instance): draw.end does nothing.
     bool instance_loop{};
@@ -1098,6 +1101,16 @@ bool FrontSkipSame() {
         return value == nullptr || value[0] != '0';
     }();
     return skip;
+}
+
+// Executable methods the front drops when they keep the register's value. Draw macros write them
+// for every instance (~500,000 same values a second in Ocarina of Time); they only store the value
+// and no dirty flag covers them. index_buffer.first marks the index buffer dirty, which replaces
+// the binding an inline or small index draw left; topology_override is not part of an instance
+// loop, so any write to it ends a deferred draw.
+bool FrontDropsSameValue(u32 method) {
+    return method == MAXWELL3D_REG_INDEX(vertex_buffer.first) ||
+           method == MAXWELL3D_REG_INDEX(vertex_buffer.count);
 }
 
 } // Anonymous namespace
@@ -1172,6 +1185,15 @@ void Maxwell3D::FrontWrite(VideoCommon::GpuSplit& split, FrontState& fs, u32 met
         }
         fs.regs[method] = value;
     } else {
+        // Kept while state writes wait in the back's sink: it would consume them before the next
+        // engine's work.
+        if (FrontDropsSameValue(method) && fs.regs[method] == value && shadow_kept &&
+            fs.skip_same && !fs.sink_pending) {
+            if (Profile::Enabled()) [[unlikely]] {
+                Profile::Add(Profile::Counter::SameValueWrites, 1);
+            }
+            return;
+        }
         fs.regs[method] = value;
         constexpr u32 cb_data = MAXWELL3D_REG_INDEX(const_buffer.buffer);
         switch (method) {
@@ -1209,9 +1231,12 @@ void Maxwell3D::FrontWrite(VideoCommon::GpuSplit& split, FrontState& fs, u32 met
         }
     }
     if (from_macro) {
+        // Direct writes consume the sink first.
         split.MacroWrite(this, method, argument);
+        fs.sink_pending = false;
     } else {
         split.Method(this, method, argument, is_last_call, nullptr);
+        fs.sink_pending = !execution_mask[method];
     }
 }
 
@@ -1320,6 +1345,7 @@ void Maxwell3D::FrontCallMultiMethod(Core::System& system, VideoCommon::GpuSplit
         }
     }
     split.MultiMethod(this, method, base_start, amount, methods_pending, nullptr);
+    fs.sink_pending = false; // The back consumes the sink before a run.
 }
 
 void Maxwell3D::FrontRunMacro(Core::System& system, VideoCommon::GpuSplit& split,
