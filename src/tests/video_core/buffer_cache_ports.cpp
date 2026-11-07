@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <array>
 #include <barrier>
+#include <condition_variable>
 #include <cstring>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
@@ -108,6 +110,24 @@ struct Runtime {
             upload_bytes += copy.size;
         }
     }
+    void CopyBuffer(Buffer& dst, Buffer& src, std::span<const VideoCommon::BufferCopy> copies,
+                    bool) {
+        for (const auto& copy : copies) {
+            REQUIRE(copy.src_offset + copy.size <= src.bytes.size());
+            REQUIRE(copy.dst_offset + copy.size <= dst.bytes.size());
+            std::memcpy(dst.bytes.data() + copy.dst_offset, src.bytes.data() + copy.src_offset,
+                        copy.size);
+        }
+    }
+    void ClearBuffer(Buffer& buffer, u32 offset, size_t size, u32 value) {
+        REQUIRE(offset + size <= buffer.bytes.size());
+        std::memset(buffer.bytes.data() + offset, static_cast<int>(value), size);
+    }
+    void TickFrame(Common::SlotVector<Buffer>&) {}
+    u64 GetDeviceMemoryUsage() const {
+        return 0;
+    }
+    void FreeDeferredStagingBuffer(Staging&) {}
     void Finish() {
         if (before_completion) {
             before_completion();
@@ -234,6 +254,9 @@ struct BufferCacheTestAccess {
     }
     static u32 CpuMarks(Cache& cache) {
         return cache.memory_tracker.cpu_marks;
+    }
+    static size_t Deferred(Cache& cache) {
+        return cache.deferred_page_writes.size();
     }
 };
 
@@ -626,4 +649,190 @@ TEST_CASE("Downloads keep CPU writes collected and not yet applied", "[buffer_po
     REQUIRE(f.bytes[0x20ff7] == 0x34);
     REQUIRE(std::all_of(f.bytes + 0x20ff8, f.bytes + 0x21008, [](u8 b) { return b == 0xee; }));
     REQUIRE(f.bytes[0x21008] == 0x34);
+}
+
+namespace {
+
+/// Runs work on a thread marked as the GPU thread (the scheduler's owner), one call at a time.
+class OwnerThread {
+public:
+    OwnerThread() : thread{[this](std::stop_token stop) { Run(stop); }} {
+        std::unique_lock lock{mutex};
+        ready.wait(lock, [&] { return marked; });
+    }
+    ~OwnerThread() {
+        {
+            std::scoped_lock lock{mutex};
+            thread.request_stop();
+        }
+        wake.notify_all();
+        thread.join();
+    }
+    void Do(std::function<void()> work) {
+        std::unique_lock lock{mutex};
+        job = std::move(work);
+        wake.notify_all();
+        ready.wait(lock, [&] { return !job; });
+    }
+
+private:
+    void Run(std::stop_token stop) {
+        VideoCommon::GpuSplit::MarkGpuThread();
+        {
+            std::scoped_lock lock{mutex};
+            marked = true;
+        }
+        ready.notify_all();
+        std::unique_lock lock{mutex};
+        while (!stop.stop_requested()) {
+            wake.wait(lock, [&] { return job || stop.stop_requested(); });
+            if (job) {
+                job();
+                job = nullptr;
+                ready.notify_all();
+            }
+        }
+        VideoCommon::GpuSplit::UnmarkGpuThread();
+    }
+
+    std::mutex mutex;
+    std::condition_variable wake;
+    std::condition_variable ready;
+    std::function<void()> job;
+    bool marked{};
+    std::jthread thread;
+};
+
+struct DeferredWriteFixture : Fixture {
+    DeferredWriteFixture() {
+        id = Access::Add(*cache, 0x20000, 0x10000);
+        std::ranges::fill(Access::Get(*cache, id).bytes, 0x12);
+        Access::Dirty(*cache, 0x20000, 0x1000);
+        // The guest CPU writes 16 bytes in the middle of the GPU-written page.
+        std::memset(bytes + 0x10100, 0xee, 0x10);
+    }
+    bool GuestHasGpuBytes() const {
+        return bytes[0x10000] == 0x12 && bytes[0x100ff] == 0x12 && bytes[0x10110] == 0x12 &&
+               bytes[0x10fff] == 0x12;
+    }
+    bool GuestKeepsCpuBytes() const {
+        return std::all_of(bytes + 0x10100, bytes + 0x10110, [](u8 b) { return b == 0xee; });
+    }
+    VideoCommon::BufferId id;
+};
+
+} // namespace
+
+TEST_CASE("Without a GPU thread a partial page write keeps the old behaviour",
+          "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    REQUIRE_FALSE(VideoCommon::GpuSplit::HasGpuThread());
+    const u32 marks = Access::CpuMarks(*f.cache);
+    f.cache->WriteMemory(0x20100, 0x10);
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(Access::CpuMarks(*f.cache) == marks + 1);
+    CHECK(f.runtime.downloads == 0);
+}
+
+TEST_CASE("A non-owner partial page write waits for the owner, which keeps the GPU bytes",
+          "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    REQUIRE(VideoCommon::GpuSplit::HasGpuThread());
+    REQUIRE_FALSE(VideoCommon::GpuSplit::OwnsScheduler());
+    const u32 marks = Access::CpuMarks(*f.cache);
+
+    f.cache->WriteMemory(0x20100, 0x10);
+    CHECK(Access::Deferred(*f.cache) == 1);
+    CHECK(Access::CpuMarks(*f.cache) == marks);
+    CHECK(f.runtime.downloads == 0);
+    // The CPU's bytes leave the GPU-written set at once; the rest of the page stays in it.
+    CHECK_FALSE(Access::Pending(*f.cache, 0x20100, 0x10));
+    CHECK(f.cache->IsRegionGpuModified(0x20000, 0x100));
+    CHECK(f.cache->IsRegionGpuModified(0x20110, 0x100));
+
+    // Another non-owner call doesn't apply it either.
+    f.cache->DownloadMemory(0x20000, 0x1000);
+    CHECK(Access::Deferred(*f.cache) == 1);
+
+    SECTION("a download on the owner applies it first") {
+        owner.Do([&] { f.cache->DownloadMemory(0x20000, 0x1000); });
+    }
+    SECTION("the owner's frame tick applies it") {
+        owner.Do([&] { f.cache->TickFrame(); });
+    }
+    SECTION("an owner write elsewhere on the page applies it first") {
+        std::memset(f.bytes + 0x10800, 0xdd, 4);
+        owner.Do([&] { f.cache->WriteMemory(0x20800, 4); });
+        CHECK(f.bytes[0x10800] == 0xdd);
+    }
+    SECTION("an owner write on a page without GPU data applies it first") {
+        owner.Do([&] { f.cache->WriteMemory(0x40000, 4); });
+    }
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(f.runtime.downloads >= 1);
+    CHECK(Access::CpuMarks(*f.cache) > marks);
+    CHECK(f.GuestHasGpuBytes());
+    CHECK(f.GuestKeepsCpuBytes());
+}
+
+TEST_CASE("An owner partial page write downloads the GPU bytes at once",
+          "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    const u32 marks = Access::CpuMarks(*f.cache);
+    owner.Do([&] { f.cache->WriteMemory(0x20100, 0x10); });
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(Access::CpuMarks(*f.cache) == marks + 1);
+    CHECK(f.GuestHasGpuBytes());
+    CHECK(f.GuestKeepsCpuBytes());
+}
+
+TEST_CASE("Deferred page writes keep their order and skip pages already downloaded",
+          "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    Access::Dirty(*f.cache, 0x23000, 0x1000);
+    std::memset(f.bytes + 0x13000, 0x77, 8);
+    f.cache->WriteMemory(0x20100, 0x10);
+    f.cache->WriteMemory(0x23000, 8);
+    // A write on a page without GPU data is applied at once.
+    const u32 marks = Access::CpuMarks(*f.cache);
+    f.cache->WriteMemory(0x25000, 8);
+    CHECK(Access::CpuMarks(*f.cache) == marks + 1);
+    CHECK(Access::Deferred(*f.cache) == 2);
+
+    owner.Do([&] { f.cache->DownloadMemory(0x20000, 0x10000); });
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(Access::CpuMarks(*f.cache) == marks + 3);
+    CHECK(f.GuestHasGpuBytes());
+    CHECK(f.GuestKeepsCpuBytes());
+    CHECK(f.bytes[0x13000] == 0x77);
+    CHECK(f.bytes[0x13007] == 0x77);
+    CHECK(f.bytes[0x13008] == 0x12);
+    CHECK_FALSE(Access::Pending(*f.cache, 0x20000, 0x10000));
+}
+
+TEST_CASE("Unmaps never wait for the owner", "[buffer_ports][deferred_page_writes]") {
+    DeferredWriteFixture f;
+    OwnerThread owner;
+    const u32 marks = Access::CpuMarks(*f.cache);
+    f.cache->WriteMemory(0x20000, 0x1000, false);
+    CHECK(Access::Deferred(*f.cache) == 0);
+    CHECK(Access::CpuMarks(*f.cache) == marks + 1);
+    CHECK(f.runtime.downloads == 0);
+}
+
+TEST_CASE("The GPU thread mark follows the thread's lifetime",
+          "[buffer_ports][deferred_page_writes]") {
+    REQUIRE_FALSE(VideoCommon::GpuSplit::HasGpuThread());
+    {
+        OwnerThread first;
+        CHECK(VideoCommon::GpuSplit::HasGpuThread());
+        bool owns = false;
+        first.Do([&] { owns = VideoCommon::GpuSplit::OwnsScheduler(); });
+        CHECK(owns);
+        CHECK_FALSE(VideoCommon::GpuSplit::OwnsScheduler());
+    }
+    CHECK_FALSE(VideoCommon::GpuSplit::HasGpuThread());
 }

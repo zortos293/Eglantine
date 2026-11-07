@@ -7,6 +7,8 @@
 #include "shader_recompiler/frontend/ir/program.h"
 
 namespace Shader::Backend::SPIRV {
+/// Defines the subgroup-shuffle software HMMA helpers the program's TensorMulAdd instructions
+/// call: one K=8 group for K=8, two groups in a loop for K=16, rounding to half after each group.
 void DefineSoftwareMatrixFunctions(EmitContext& ctx, const IR::Program& program) {
     std::array<bool, 2> needed{};
     for (const auto* block : program.blocks) {

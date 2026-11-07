@@ -60,6 +60,9 @@ void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Core::Fronten
         prctl(PR_SET_TIMERSLACK, 1UL, 0, 0, 0);
 #endif
         VideoCommon::GpuSplit::MarkGpuThread();
+        SCOPE_EXIT {
+            VideoCommon::GpuSplit::UnmarkGpuThread();
+        };
         Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
         Common::SetCurrentThreadToPerformanceCores();
         if (Settings::values.pin_gpu_threads.GetValue()) {

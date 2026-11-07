@@ -44,6 +44,7 @@ struct BypassState {
     std::atomic<bool> output_replaced{};      ///< the latest output pass was replaced
 };
 
+/// Whether the running game is Ocarina of Time with its anti-aliasing at No sharpening.
 inline bool BypassEnabled(u64 program_id) {
     return program_id == ProgramId &&
            Settings::values.oot_anti_aliasing.GetValue() == Settings::OotAntiAliasing::NoSharpening;

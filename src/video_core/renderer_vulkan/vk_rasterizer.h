@@ -116,6 +116,8 @@ public:
     void InvalidateRegion(DAddr addr, u64 size,
                           VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void PrepareRegionWrite(DAddr addr, u64 size, VideoCommon::CacheType which) override;
+    /// The GPU's own cached writes: invalidates the caches that ever registered objects on their
+    /// pages (the buffer cache always).
     void InnerInvalidation(std::span<const std::pair<DAddr, std::size_t>> sequences) override;
     void OnCacheInvalidation(DAddr addr, u64 size) override;
     void OnCacheInvalidations(std::span<const std::pair<DAddr, u64>> ranges) override;
@@ -186,6 +188,8 @@ private:
 
     static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
 
+    /// Binds the pipeline, buffers and render targets of the current draw, then records it with
+    /// `draw_func`; skips the draw when its pipeline is unavailable.
     template <typename Func>
     void PrepareDraw(bool is_indexed, Func&&, bool is_indirect = false);
 
