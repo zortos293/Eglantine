@@ -645,7 +645,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         if (features.shader_float16_int8.shaderFloat16) {
             LOG_WARNING(Render_Vulkan,
                         "AMD drivers (2026+) have broken float16 math");
-            features.shader_float16_int8.shaderFloat16 = false;
+            // The cooperative-matrix HMMA path needs fp16 matrix types: keep the device
+            // feature then, but still report fp16 as unsupported to the shader compiler.
+            if (extensions.cooperative_matrix) {
+                has_broken_float16_math = true;
+            } else {
+                features.shader_float16_int8.shaderFloat16 = false;
+            }
         }
     }
 
@@ -664,6 +670,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel has broken float16 math");
         features.shader_float16_int8.shaderFloat16 = false;
     }
+
+    // The fp16 workarounds above can still rule out the cooperative-matrix HMMA path.
+    if (extensions.cooperative_matrix && !features.shader_float16_int8.shaderFloat16) {
+        RemoveExtensionFeature(extensions.cooperative_matrix, features.cooperative_matrix,
+                               VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME);
+    }
+    LOG_INFO(Render_Vulkan, "HMMA on cooperative matrices: {}",
+             IsCooperativeMatrixF16Supported() ? "enabled" : "disabled, using shader emulation");
 
     has_broken_compute =
         CheckBrokenCompute(properties.driver.driverID, properties.properties.driverVersion) &&
@@ -1664,6 +1678,50 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.vertex_input_dynamic_state,
                                        features.vertex_input_dynamic_state,
                                        VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
+
+    // VK_KHR_cooperative_matrix: runs HMMA as one 16x16x16 multiply-add per warp.
+    if (extensions.cooperative_matrix) {
+        // The tensor path emits subgroup-scope 16x16x16 fp16 matrices (A, B, C and result all
+        // fp16) and assumes one 32-lane guest warp per subgroup: require both, else fall back
+        // to the per-lane HMMA emulation.
+        bool has_f16_16x16x16 = false;
+        const auto get_props =
+            reinterpret_cast<PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR>(
+                dld.vkGetInstanceProcAddr(instance,
+                                          "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR"));
+        if (get_props != nullptr) {
+            u32 count = 0;
+            if (get_props(physical, &count, nullptr) == VK_SUCCESS && count > 0) {
+                VkCooperativeMatrixPropertiesKHR init{};
+                init.sType = VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR;
+                std::vector<VkCooperativeMatrixPropertiesKHR> props(count, init);
+                if (get_props(physical, &count, props.data()) == VK_SUCCESS) {
+                    for (const auto& p : props) {
+                        has_f16_16x16x16 |= p.MSize == 16 && p.NSize == 16 && p.KSize == 16 &&
+                                            p.AType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                                            p.BType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                                            p.CType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                                            p.ResultType == VK_COMPONENT_TYPE_FLOAT16_KHR &&
+                                            p.scope == VK_SCOPE_SUBGROUP_KHR;
+                    }
+                }
+            }
+        }
+        const bool warp32 = extensions.subgroup_size_control &&
+                            (properties.subgroup_size_control.requiredSubgroupSizeStages &
+                             VK_SHADER_STAGE_COMPUTE_BIT) != 0;
+        const bool usable = features.cooperative_matrix.cooperativeMatrix && has_f16_16x16x16 &&
+                            warp32 && features.shader_float16_int8.shaderFloat16;
+        if (!usable) {
+            LOG_INFO(Render_Vulkan,
+                     "VK_KHR_cooperative_matrix unsuitable for HMMA (cooperativeMatrix={}, "
+                     "f16 16x16x16={}, warp32={}, shaderFloat16={})",
+                     features.cooperative_matrix.cooperativeMatrix != VK_FALSE, has_f16_16x16x16,
+                     warp32, features.shader_float16_int8.shaderFloat16 != VK_FALSE);
+            RemoveExtensionFeature(extensions.cooperative_matrix, features.cooperative_matrix,
+                                   VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME);
+        }
+    }
 
     // VK_KHR_pipeline_executable_properties
     if (Settings::values.renderer_shader_feedback.GetValue()) {
